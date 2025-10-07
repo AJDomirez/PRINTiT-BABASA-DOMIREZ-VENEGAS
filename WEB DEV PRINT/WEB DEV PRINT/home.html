@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRINT IT • Home</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth; /* Enables smooth scroll */
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    /* Navbar */
+    nav {
+      width: 100%;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 60px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+
+    nav .logo {
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    nav .logo span {
+      color: #16a34a; /* Green accent */
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 25px;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      font-weight: 500;
+      color: #333;
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #16a34a;
+    }
+
+    nav .btn {
+      background: #16a34a;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    nav .btn:hover {
+      background: #15803d;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                  url('bg.jpg')
+                  center/cover no-repeat;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .hero h1 span {
+      color: #facc15; /* yellow */
+    }
+
+    .hero p {
+      max-width: 700px;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .hero .buttons {
+      display: flex;
+      gap: 20px;
+    }
+
+    .hero .buttons a {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .btn-yellow {
+      background: #facc15;
+      color: #000;
+    }
+
+    .btn-yellow:hover {
+      background: #eab308;
+    }
+
+    .btn-outline {
+      border: 2px solid #fff;
+      color: #fff;
+    }
+
+    .btn-outline:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    /* Features */
+    .features {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      padding: 60px 40px;
+      margin-top: -100px;
+    }
+
+    .feature-box {
+      background: rgba(255,255,255,0.9);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      flex: 1;
+      max-width: 300px;
+    }
+
+    .feature-box i {
+      font-size: 30px;
+      color: #facc15;
+      margin-bottom: 15px;
+    }
+
+    .feature-box h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .feature-box p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* About Us Section */
+    .about {
+      background: #fff;
+      padding: 80px 40px;
+      text-align: center;
+    }
+
+    .about h2 {
+      font-size: 32px;
+      color: #16a34a;
+      margin-bottom: 40px;
+    }
+
+    .about-content {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .about-box {
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      flex: 1;
+      max-width: 300px;
+    }
+
+    .about-box h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .about-box p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .about-box img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">Print-<span>IT</span></div>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#">Find Shops</a></li>
+      <li><a href="#">Services</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <a href="#" class="btn">Get Started</a>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <h1>Find Your Perfect <span>Print Shop</span></h1>
+    <p>Discover nearby printing services around SLSU-Lucena Campus, compare prices, and get your documents printed hassle-free. Perfect for students who need quick and affordable printing solutions.</p>
+    <div class="buttons">
+      <a href="#" class="btn-yellow">🔍 Find Print Shops</a>
+      <a href="#" class="btn-outline">ℹ️ How It Works</a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="feature-box">
+      <i>📍</i>
+      <h3>Campus Area Search</h3>
+      <p>Find print shops specifically around SLSU-Lucena Campus.</p>
+    </div>
+    <div class="feature-box">
+      <i>💰</i>
+      <h3>Student-Friendly Prices</h3>
+      <p>Compare affordable printing rates perfect for student budgets.</p>
+    </div>
+    <div class="feature-box">
+      <i>⏰</i>
+      <h3>Quick & Convenient</h3>
+      <p>Check operating hours and services that fit your class schedule.</p>
+    </div>
+  </section>
+
+  <!-- About Us -->
+  <section class="about" id="about">
+    <h2>About Us</h2>
+    <div class="about-content">
+      <div class="about-box">
+        <h3>Our Mission</h3>
+        <p>To make printing accessible, affordable, and convenient for students and professionals alike.</p>
+      </div>
+      <div class="about-box">
+        <h3>Our Vision</h3>
+        <p>To become the leading print service locator platform that connects communities with reliable shops.</p>
+      </div>
+      <div class="about-box">
+        <h3>Gallery</h3>
+        <img src="img1.jpg" alt="About Us Image">
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
