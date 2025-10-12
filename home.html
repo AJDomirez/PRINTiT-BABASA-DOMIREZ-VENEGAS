@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Print‑IT — Home</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="left">
+      <img src="assets/logo.png" class="logo small" alt="Print‑IT" />
+      <h2>Print‑IT</h2>
+    </div>
+    <div class="center">
+      <input type="search" id="searchLocation" placeholder="Search your location (e.g., Lucena)" />
+      <button class="btn" id="useMyLoc">Use my location</button>
+    </div>
+    <div class="right">
+      <button class="btn outline" id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <h3>Nearby Vendors</h3>
+    <div id="vendorList" class="grid"></div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

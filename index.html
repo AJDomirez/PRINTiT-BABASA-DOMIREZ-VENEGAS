@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Print‑IT — Login</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="centered">
+  <main class="card auth-card">
+    <img src="assets/logo.png" alt="Print‑IT" class="logo" />
+    <h1>Welcome to Print‑IT</h1>
+
+    <form id="loginForm" class="form">
+      <label>Email
+        <input type="email" id="loginEmail" placeholder="you@example.com" required />
+      </label>
+      <label>Password
+        <div class="password-field">
+          <input type="password" id="loginPassword" placeholder="••••••••" required />
+          <button type="button" class="icon-btn" id="toggleLoginPw" aria-label="Show/Hide Password">👁️</button>
+        </div>
+      </label>
+      <label>Role
+        <select id="loginRole" required>
+          <option value="user">User</option>
+          <option value="vendor">Vendor</option>
+          <option value="admin">Admin</option>
+        </select>
+      </label>
+      <button class="btn primary" type="submit">Log In</button>
+    </form>
+
+    <p class="muted">No account? <a href="register.html">Create one</a></p>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('toggleLoginPw').onclick = () => togglePassword('loginPassword');
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = loginEmail.value.trim();
+      const pw = loginPassword.value;
+      const role = loginRole.value;
+      login(email, pw, role);
+    });
+  </script>
+</body>
+</html>

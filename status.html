@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Print‑IT — Order Status</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="left">
+      <a href="home.html" class="btn">← Home</a>
+      <img src="assets/logo.png" class="logo small" alt="Print‑IT" />
+      <h2>My Orders</h2>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="orders" class="grid"></div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    requireAuth();
+    const user = getCurrentUser();
+    const ordersEl = document.getElementById('orders');
+    const orders = getOrders().filter(o => o.userEmail === user.email);
+
+    if (!orders.length) {
+      ordersEl.innerHTML = '<p class="muted">No orders yet.</p>';
+    } else {
+      ordersEl.innerHTML = orders.map(o => `
+        <div class="card">
+          <h3>${o.vendorName} — <span class="badge">${o.status}</span></h3>
+          <p><strong>Service:</strong> ${o.serviceName}</p>
+          <p><strong>Pages:</strong> ${o.pages} | <strong>Total:</strong> ₱${o.total.toFixed(2)}</p>
+          <p><strong>Fulfillment:</strong> ${o.fulfillment}${o.address ? ` — ${o.address}` : ''}</p>
+          <p class="muted"><strong>Created:</strong> ${new Date(o.createdAt).toLocaleString()}</p>
+          <div class="row gap">
+            <button class="btn outline" onclick="updateOrderStatus('${o.id}','Processing')">Mark Processing</button>
+            <button class="btn outline" onclick="updateOrderStatus('${o.id}','Ready')">Mark Ready</button>
+            <button class="btn outline" onclick="updateOrderStatus('${o.id}','Completed')">Mark Completed</button>
+            <button class="btn danger" onclick="cancelOrder('${o.id}')">Cancel</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
