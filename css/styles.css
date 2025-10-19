@@ -102,10 +102,12 @@ body {
   box-shadow: 0 3px 8px rgba(79, 70, 229, 0.25);
 }
 .app-header {
+  -webkit-backdrop-filter: blur(10px); /* ✅ Added for Safari support */
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.75);
   border-bottom: 1px solid rgba(255, 255, 255, 0.4);
 }
+
 
 header {
   background-image: url("https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1600&auto=format&fit=crop");
