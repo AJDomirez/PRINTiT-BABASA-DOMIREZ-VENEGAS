@@ -15,7 +15,7 @@ infoEl.innerHTML = `
 const svcEl = document.getElementById('serviceList');
 svcEl.innerHTML = vendor.services.map(s => `
   <div class="card service-card">
-    <img src="${s.img || 'assets/logo.png'}" alt="${s.name}">
+    <img src="${s.img || 'assets/new.png'}" alt="${s.name}">
     <h4>${s.name}</h4>
     <p class="muted">₱${s.pricePerPage.toFixed(2)} / page</p>
     <a class="btn primary" href="order.html?vendorId=${vendor.id}&serviceId=${s.id}">Print‑IT</a>

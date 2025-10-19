@@ -9,7 +9,6 @@ function initSeed() {
     // seed one vendor & one user
     const seed = [
       { name: 'Demo User', email: 'user@example.com', password: '123456', role: 'user' },
-      { name: 'Vendor Owner', email: 'vendor@example.com', password: '123456', role: 'vendor', vendorName: 'Lucena QuickPrint', vendorId: 'v1' },
       { name: 'Admin', email: 'admin@example.com', password: '123456', role: 'admin' }
     ];
     localStorage.setItem(LS_KEYS.USERS, JSON.stringify(seed));

@@ -27,7 +27,7 @@ textarea { min-height: 96px; resize: vertical; }
 .icon-btn { border: 1px solid var(--border); background: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 
 .btn { cursor: pointer; border: 1px solid var(--border); background: #fff; padding: 10px 14px; border-radius: 12px; font-weight: 600; }
-.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; text-decoration: none; }
 .btn.primary:hover { background: var(--primary-600); }
 .btn.outline { background: transparent; }
 .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
@@ -53,7 +53,7 @@ textarea { min-height: 96px; resize: vertical; }
 #orders .card h3 { display: flex; justify-content: space-between; align-items: center; }
 
 body {
-  background-image: url('../Untitled\ design90.png'); 
+  background-image: url('/assets/Untitled\ design90.png'); 
   background-size: cover;      
   background-position: center; 
   background-repeat: no-repeat;
