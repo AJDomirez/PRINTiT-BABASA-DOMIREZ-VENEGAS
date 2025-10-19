@@ -123,3 +123,5 @@ async function getGeoCity() {
 // Logout on pages that have the button
 const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) logoutBtn.addEventListener('click', logout);
+
+
