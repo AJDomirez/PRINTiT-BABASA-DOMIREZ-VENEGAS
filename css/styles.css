@@ -121,3 +121,88 @@ header {
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+}
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUp 0.10s ease forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* For tablets and smaller screens */
+@media (max-width: 1024px) {
+  .container {
+    width: 95vw;
+    margin: 10px auto;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+
+  .app-header {
+    grid-template-columns: 1fr 1fr;
+    padding: 8px 12px;
+  }
+
+  .app-header .center {
+    display: none; 
+  }
+}
+
+/* For mobile phones */
+@media (max-width: 600px) {
+  .app-header {
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+
+  .logo.small {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn {
+    padding: 8px 10px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr; /* one column for mobile */
+  }
+
+  h1, h2, h3 {
+    font-size: 1.2rem;
+  }
+
+  p {
+    font-size: 0.9rem;
+  }
+
+  input, select, textarea {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+
+
