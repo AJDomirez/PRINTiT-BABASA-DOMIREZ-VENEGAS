@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | PrintoTogo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-sky-50">
+  <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
+    <h1 class="text-xl font-semibold mb-4 text-center text-sky-600">PrintoTogo Login</h1>
+    <form id="loginForm" class="space-y-3">
+      <div>
+        <label class="block text-sm text-gray-700">Email</label>
+        <input id="email" type="email" class="w-full border rounded-md p-2" required>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-700">Password</label>
+        <input id="password" type="password" class="w-full border rounded-md p-2" required>
+      </div>
+      <button class="w-full bg-sky-500 text-white py-2 rounded-md font-semibold hover:bg-sky-600">Login</button>
+    </form>
+    <p class="text-xs text-gray-400 mt-4 text-center">
+      After login you can open home.html or vendor-dashboard.html
+    </p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // If already logged in → go to home.html
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "home.html";
+      }
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  </script>
+</body>
+</html>

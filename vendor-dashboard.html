@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendor Dashboard | Print-IT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #f5f9ff; font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-sky-600 text-white py-4 px-6 flex justify-between items-center shadow">
+    <h1 class="text-xl font-semibold">PrintoTogo Vendor Dashboard</h1>
+    <button id="logoutBtn" class="bg-white text-sky-600 px-4 py-1 rounded-md font-medium hover:bg-gray-100">Logout</button>
+  </header>
+
+  <!-- Vendor Info -->
+  <section class="p-6 bg-white rounded-lg shadow mx-6 mt-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Shop Information</h2>
+    <div id="vendorInfo" class="text-gray-600 space-y-1">
+      <p><strong>Shop Name:</strong> <span id="shopName"></span></p>
+      <p><strong>Owner:</strong> <span id="ownerName"></span></p>
+      <p><strong>Email:</strong> <span id="email"></span></p>
+      <p><strong>Address:</strong> <span id="address"></span></p>
+    </div>
+  </section>
+
+  <!-- Add Service -->
+  <section class="p-6 bg-white rounded-lg shadow mx-6 mt-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Add a Service</h2>
+    <form id="serviceForm" class="space-y-3">
+      <div>
+        <label class="block text-sm text-gray-700">Service Name</label>
+        <input type="text" id="serviceName" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-sky-400 focus:outline-none" required>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-700">Description</label>
+        <textarea id="serviceDescription" rows="2" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-sky-400 focus:outline-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-700">Price (₱)</label>
+        <input type="number" id="servicePrice" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-sky-400 focus:outline-none" required>
+      </div>
+      <button type="submit" class="w-full bg-sky-500 text-white py-2 rounded-md font-semibold hover:bg-sky-600">Add Service</button>
+    </form>
+  </section>
+
+  <!-- Services List -->
+  <section class="p-6 bg-white rounded-lg shadow mx-6 mt-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-3">Your Services</h2>
+    <div id="servicesList" class="grid md:grid-cols-2 gap-4"></div>
+  </section>
+
+  <!-- Orders List -->
+  <section class="p-6 bg-white rounded-lg shadow mx-6 mt-6 mb-10">
+    <h2 class="text-lg font-semibold text-gray-700 mb-3">Latest Orders</h2>
+    <p class="text-sm text-gray-500 mb-4">Orders placed from the customer shop page will appear here.</p>
+    <div id="ordersList" class="space-y-3"></div>
+  </section>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { 
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      collection,
+      addDoc,
+      onSnapshot,
+      deleteDoc,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentVendor = null;
+
+    // Require login
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentVendor = user;
+      await loadVendorInfo(user.uid);
+      await ensureVendorRecord(user.uid);
+      loadVendorServices(user.uid);
+      loadVendorOrders(user.uid);
+    });
+
+    // Load private vendor info from "users"
+    async function loadVendorInfo(uid) {
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("shopName").textContent = data.shopName || "";
+        document.getElementById("ownerName").textContent = data.ownerName || "";
+        document.getElementById("email").textContent = data.email || "";
+        document.getElementById("address").textContent = data.address || "";
+      }
+    }
+
+    // Make sure vendor is also in "vendors" (public list)
+    async function ensureVendorRecord(uid) {
+      const vendorDocRef = doc(db, "vendors", uid);
+      const vendorSnap = await getDoc(vendorDocRef);
+      if (!vendorSnap.exists()) {
+        const userDocRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userDocRef);
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          await setDoc(vendorDocRef, {
+            shopName: data.shopName || "Unnamed Shop",
+            ownerName: data.ownerName || "",
+            email: data.email || "",
+            address: data.address || "",
+            createdAt: new Date().toISOString()
+          });
+        }
+      }
+    }
+
+    // Add new service
+    document.getElementById("serviceForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const serviceName = document.getElementById("serviceName").value.trim();
+      const serviceDescription = document.getElementById("serviceDescription").value.trim();
+      const servicePrice = document.getElementById("servicePrice").value;
+
+      if (!serviceName || !servicePrice) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      await addDoc(collection(db, "vendors", currentVendor.uid, "services"), {
+        serviceName,
+        serviceDescription,
+        servicePrice: parseFloat(servicePrice),
+        createdAt: new Date().toISOString()
+      });
+
+      document.getElementById("serviceForm").reset();
+      alert("✅ Service added successfully!");
+    });
+
+    // Load services with realtime updates
+    function loadVendorServices(uid) {
+      const servicesRef = collection(db, "vendors", uid, "services");
+      onSnapshot(servicesRef, (snapshot) => {
+        const container = document.getElementById("servicesList");
+        container.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+          const s = docSnap.data();
+          const serviceId = docSnap.id;
+          container.innerHTML += `
+            <div class="border rounded-lg p-4 shadow-sm bg-gray-50 flex flex-col justify-between">
+              <div>
+                <h3 class="font-semibold text-gray-800">${s.serviceName}</h3>
+                <p class="text-sm text-gray-600 mb-1">${s.serviceDescription || "No description"}</p>
+                <p class="font-medium text-sky-600 mb-3">₱${s.servicePrice}</p>
+              </div>
+              <button
+                class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 text-sm self-start"
+                onclick="deleteService('${uid}', '${serviceId}')">
+                Delete
+              </button>
+            </div>
+          `;
+        });
+      });
+    }
+
+    // Delete service (global function)
+    window.deleteService = async (vendorId, serviceId) => {
+      if (!confirm("Delete this service?")) return;
+      await deleteDoc(doc(db, "vendors", vendorId, "services", serviceId));
+      alert("✅ Service deleted.");
+    };
+
+    // Load orders for this vendor
+    function loadVendorOrders(uid) {
+      const ordersRef = collection(db, "vendors", uid, "orders");
+      const q = query(ordersRef, orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        const container = document.getElementById("ordersList");
+        container.innerHTML = "";
+        if (snapshot.empty) {
+          container.innerHTML = `<p class="text-gray-500 text-sm">No orders yet.</p>`;
+          return;
+        }
+        snapshot.forEach((docSnap) => {
+          const o = docSnap.data();
+          const date = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate().toLocaleString() : "";
+          container.innerHTML += `
+            <div class="border rounded-md p-4 bg-gray-50 flex justify-between gap-4">
+              <div>
+                <p class="text-sm text-gray-500">Service</p>
+                <p class="font-semibold text-gray-800">${o.serviceName || "Unknown service"}</p>
+                <p class="text-sm text-gray-500 mt-2">Customer</p>
+                <p class="text-gray-700">${o.customerName || "N/A"} (${o.customerContact || "no contact"})</p>
+                <p class="text-sm text-gray-500 mt-2">Qty: <span class="text-gray-700 font-medium">${o.qty || 1}</span></p>
+                ${o.notes ? `<p class="text-sm text-gray-500 mt-2">Notes: <span class="text-gray-700">${o.notes}</span></p>` : ""}
+                ${date ? `<p class="text-xs text-gray-400 mt-2">Created: ${date}</p>` : ""}
+              </div>
+              <div class="flex items-start">
+                ${
+                  o.fileURL
+                    ? `<a href="${o.fileURL}" target="_blank" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600">Open file</a>`
+                    : `<span class="text-xs text-gray-400 italic">No file link</span>`
+                }
+              </div>
+            </div>
+          `;
+        });
+      });
+    }
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>

@@ -1,33 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Print‑IT — Home</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrintoTogo | Customer Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #f5f9ff; font-family: 'Inter', sans-serif; }
+  </style>
 </head>
-<body>
-  <header class="app-header">
-    <div class="left">
-      <img src="assets/new.png" class="logo small" alt="Print‑IT" />
-      <h2>Print‑IT</h2>
-    </div>
-    <div class="center">
-      <input type="search" id="searchLocation" placeholder="Search your location (e.g., Lucena)" />
-      <button class="btn" id="useMyLoc">Use my location</button>
-    </div>
-    <div class="right">
-      <button class="btn outline" id="logoutBtn">Log out</button>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-sky-600 text-white py-4 px-6 flex justify-between items-center shadow">
+    <h1 class="text-xl font-semibold">PrintoTogo</h1>
+    <div class="flex items-center gap-3">
+      <input type="text" id="searchBox" placeholder="Search shop..." class="rounded-md p-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-300">
+      <button id="logoutBtn" class="bg-white text-sky-600 px-3 py-1 rounded-md font-semibold hover:bg-gray-100">Logout</button>
     </div>
   </header>
 
-  <main class="container">
-    <h3>Nearby Vendors</h3>
-    <div id="vendorList" class="grid"></div>
-  </main>
+  <!-- Title -->
+  <section class="px-6 mt-6">
+    <h2 class="text-2xl font-semibold text-gray-700">Nearby Print Shops</h2>
+    <p class="text-gray-500 text-sm">Find local vendors near you.</p>
+  </section>
 
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/home.js"></script>
+  <!-- Shops -->
+  <main id="shopsContainer" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6"></main>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const shopsContainer = document.getElementById("shopsContainer");
+    const searchBox = document.getElementById("searchBox");
+
+    // Require login
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      loadVendorsLive();
+    });
+
+    // Realtime list of vendors
+    function loadVendorsLive() {
+      const vendorsRef = collection(db, "vendors");
+      onSnapshot(vendorsRef, (vendorsSnap) => {
+        shopsContainer.innerHTML = "";
+        if (vendorsSnap.empty) {
+          shopsContainer.innerHTML = `<p class='text-center text-gray-500 col-span-full'>No shops found yet.</p>`;
+          return;
+        }
+
+        vendorsSnap.forEach((vendorDoc) => {
+          const vendorId = vendorDoc.id;
+          const data = vendorDoc.data();
+
+          const cardHTML = `
+            <div class="bg-white shadow-md rounded-lg p-5 border border-gray-100 hover:shadow-lg transition">
+              <h3 class="text-lg font-semibold text-sky-700 mb-1">${data.shopName || "Unnamed Shop"}</h3>
+              <p class="text-gray-600 text-sm mb-4">${data.address || "No address provided"}</p>
+              <button 
+                onclick="window.location.href='shop.html?id=${vendorId}'" 
+                class="bg-sky-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-sky-600">
+                View Shop
+              </button>
+            </div>
+          `;
+          shopsContainer.innerHTML += cardHTML;
+        });
+      });
+    }
+
+    // Search filter
+    searchBox.addEventListener("input", () => {
+      const term = searchBox.value.toLowerCase();
+      const cards = shopsContainer.querySelectorAll("div.bg-white");
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(term) ? "" : "none";
+      });
+    });
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
+    });
+  </script>
 </body>
 </html>
