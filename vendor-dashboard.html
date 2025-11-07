@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Print-IT · Vendor Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{background:#f8fafc;font-family:Inter,system-ui,Arial}
+    .card{background:#fff;border-radius:1rem;box-shadow:0 8px 22px rgba(15,23,42,.06)}
+    .stat{border-radius:.875rem;border:1px solid rgba(2,6,23,.06);background:#fff}
+    .sidebar-link{display:flex;align-items:center;gap:.6rem;padding:.65rem .9rem;border-radius:.65rem;color:#334155}
+    .sidebar-link.active{background:#e8f1ff;color:#1d4ed8;font-weight:600}
+    .dnd{border:2px dashed #cbd5e1;border-radius:.75rem;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;color:#64748b;cursor:pointer}
+    .img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+    .pill{font-size:.72rem;border-radius:999px;padding:.15rem .5rem}
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 min-h-screen border-r bg-white px-4 py-5 hidden md:block">
+      <div class="flex items-center gap-2 mb-6 px-2">
+        <img src="logo-placeholder.png" class="w-9 h-9 rounded-md bg-gray-100 object-cover" alt="logo"/>
+        <div>
+          <p class="text-sky-600 font-semibold leading-4">PrintHub</p>
+          <p class="text-xs text-gray-400">Vendor Dashboard</p>
+        </div>
+      </div>
+      <nav class="space-y-1">
+        <button data-tab="tab-dashboard" class="sidebar-link active">📊 Dashboard</button>
+        <button data-tab="tab-services"  class="sidebar-link">🧾 Services</button>
+        <button data-tab="tab-orders"    class="sidebar-link">📦 Orders</button>
+        <button data-tab="tab-settings"  class="sidebar-link">⚙️ Settings</button>
+      </nav>
+      <button id="logoutBtn" class="mt-8 sidebar-link text-red-600 hover:bg-red-50">🚪 Logout</button>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1">
+      <!-- Top bar (mobile) -->
+      <header class="md:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <img src="logo-placeholder.png" class="w-8 h-8 rounded-md bg-gray-100" alt="logo"/>
+          <span class="text-sky-600 font-semibold">PrintHub Vendor</span>
+        </div>
+        <button id="logoutBtnMobile" class="text-sm text-red-600">Logout</button>
+      </header>
+
+      <div class="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Dashboard Overview</h1>
+        <p class="text-gray-500 mb-6">Manage your printing services and track your business performance</p>
+
+        <!-- Overview stats -->
+        <section id="tab-dashboard" class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="stat p-4">
+              <p class="text-gray-500 text-sm">Total Orders</p>
+              <p id="stat-total-orders" class="text-2xl font-bold mt-1">0</p>
+            </div>
+            <div class="stat p-4">
+              <p class="text-gray-500 text-sm">Monthly Revenue</p>
+              <p id="stat-revenue" class="text-2xl font-bold mt-1">—</p>
+              <p class="text-xs text-gray-400 mt-1">Add prices to services & include price on orders to auto-compute.</p>
+            </div>
+            <div class="stat p-4">
+              <p class="text-gray-500 text-sm">Active Services</p>
+              <p id="stat-services" class="text-2xl font-bold mt-1">0</p>
+            </div>
+          </div>
+
+          <!-- Add New Service -->
+          <div class="card p-5">
+            <h2 class="text-lg font-semibold text-slate-800 mb-3">Add New Service</h2>
+            <form id="serviceForm" class="grid md:grid-cols-12 gap-4">
+              <div class="md:col-span-7">
+                <label class="block text-sm text-gray-600 mb-1">Service Name</label>
+                <input id="svc-name" class="w-full border rounded-lg px-3 py-2" placeholder="Enter service name" required>
+              </div>
+              <div class="md:col-span-5">
+                <label class="block text-sm text-gray-600 mb-1">Price per unit</label>
+                <input id="svc-price" type="number" min="0" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="0.00">
+              </div>
+              <div class="md:col-span-12">
+                <label class="block text-sm text-gray-600 mb-1">Description</label>
+                <textarea id="svc-desc" rows="3" class="w-full border rounded-lg px-3 py-2" placeholder="Describe your service"></textarea>
+              </div>
+
+              <div class="md:col-span-8">
+                <label class="block text-sm text-gray-600 mb-1">Service Image</label>
+                <div id="dropZone" class="dnd rounded-lg">
+                  <div>
+                    <div class="text-3xl mb-2">🖼️</div>
+                    <p class="text-sm">Click to upload or drag & drop</p>
+                    <p class="text-xs text-gray-400">PNG, JPG up to 10MB</p>
+                  </div>
+                </div>
+                <input id="fileInput" type="file" accept="image/*" class="hidden">
+                <p id="fileName" class="text-xs text-gray-500 mt-2"></p>
+              </div>
+
+              <div class="md:col-span-4 flex items-end">
+                <button class="w-full bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-lg font-semibold">Print-IT</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Current Services -->
+          <div class="card p-5">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Current Services</h2>
+            <div id="servicesGrid" class="img-grid"></div>
+            <p id="servicesEmpty" class="text-sm text-gray-500 text-center py-10 hidden">No services added yet.</p>
+          </div>
+        </section>
+
+        <!-- Services Tab -->
+        <section id="tab-services" class="hidden space-y-4">
+          <div class="card p-5">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Your Services</h2>
+            <div id="servicesGrid2" class="img-grid"></div>
+            <p id="servicesEmpty2" class="text-sm text-gray-500 text-center py-10 hidden">No services yet.</p>
+          </div>
+        </section>
+
+        <!-- Orders Tab -->
+        <section id="tab-orders" class="hidden space-y-4">
+          <div class="card p-5">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Incoming Orders</h2>
+            <div id="ordersList" class="space-y-3"></div>
+            <p id="ordersEmpty" class="text-sm text-gray-500 text-center py-10 hidden">No orders yet.</p>
+          </div>
+        </section>
+
+        <!-- Settings Tab -->
+        <section id="tab-settings" class="hidden space-y-4">
+          <div class="card p-5">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Shop Information</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Shop</label>
+                <input id="set-shop" class="w-full border rounded-lg px-3 py-2">
+              </div>
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Owner</label>
+                <input id="set-owner" class="w-full border rounded-lg px-3 py-2">
+              </div>
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Email</label>
+                <input id="set-email" class="w-full border rounded-lg px-3 py-2" disabled>
+              </div>
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Address</label>
+                <input id="set-address" class="w-full border rounded-lg px-3 py-2">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-gray-700 mb-1">Google Maps link (pickup point)</label>
+                <input id="set-map" class="w-full border rounded-lg px-3 py-2" placeholder="https://maps.app.goo.gl/...">
+                <p class="text-xs text-gray-500 mt-1">Customers will see a “📍 Open in Google Maps” link on your shop page.</p>
+              </div>
+              <div class="md:col-span-2">
+                <button id="saveSettings" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg">Save</button>
+                <span id="setSaved" class="text-xs text-green-600 ml-3 hidden">Saved.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Firebase + Cloudinary Logic -->
+  <script type="module">
+    /* ---------- Firebase ---------- */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc, setDoc,
+      collection, addDoc, onSnapshot, deleteDoc, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let VENDOR_ID = null;
+
+    /* ---------- Cloudinary (UNSIGNED) ---------- */
+    // 1) Create an unsigned upload preset in Cloudinary console (Settings → Upload)
+    // 2) Set your cloud name and preset here:
+    const CLOUDINARY_CLOUD_NAME = "dnzsngooc";
+    const CLOUDINARY_UPLOAD_PRESET = "printit_unsigned"; // change to your preset name
+    const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+    /* ---------- Sidebar tabs ---------- */
+    const tabButtons = document.querySelectorAll("aside .sidebar-link[data-tab]");
+    const sections = ["tab-dashboard","tab-services","tab-orders","tab-settings"].map(id=>document.getElementById(id));
+    tabButtons.forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        tabButtons.forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        const id = btn.dataset.tab;
+        sections.forEach(s=>s.classList.toggle("hidden", s.id !== id));
+      });
+    });
+
+    /* ---------- Logout ---------- */
+    const doLogout = async ()=>{ await signOut(auth); window.location.href="auth.html"; };
+    document.getElementById("logoutBtn").addEventListener("click", doLogout);
+    document.getElementById("logoutBtnMobile").addEventListener("click", doLogout);
+
+    /* ---------- Auth Guard ---------- */
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = "vendor-login.html"; return; }
+      const vSnap = await getDoc(doc(db,"vendors",user.uid));
+      if (!vSnap.exists()) { window.location.href = "home.html"; return; }
+      VENDOR_ID = user.uid;
+
+      loadSettings();
+      listenServices();
+      listenOrders();
+    });
+
+    /* ---------- SETTINGS ---------- */
+    async function loadSettings(){
+      const uSnap = await getDoc(doc(db,"users",VENDOR_ID));
+      if (uSnap.exists()){
+        const u=uSnap.data();
+        setVal("set-shop", u.shopName||"");
+        setVal("set-owner", u.ownerName||u.fullName||"");
+        setVal("set-email", u.email||"");
+        setVal("set-address", u.address||"");
+      }
+      const vSnap = await getDoc(doc(db,"vendors",VENDOR_ID));
+      if (vSnap.exists()){
+        const v=vSnap.data();
+        setVal("set-map", v.mapLink||"");
+      }
+      // set revenue placeholder (compute later if you add price fields to orders)
+      document.getElementById("stat-revenue").textContent = "—";
+    }
+    function setVal(id,val){ const el=document.getElementById(id); if(el) el.value = val||""; }
+    function getVal(id){ const el=document.getElementById(id); return el?el.value.trim():""; }
+
+    document.getElementById("saveSettings").addEventListener("click", async ()=>{
+      const shopName=getVal("set-shop"), ownerName=getVal("set-owner"),
+            email=getVal("set-email"), address=getVal("set-address"), map=getVal("set-map");
+      await updateDoc(doc(db,"users",VENDOR_ID), { shopName, ownerName, email, address });
+      await updateDoc(doc(db,"vendors",VENDOR_ID), { mapLink: map, shopName, ownerName, address, email });
+      const tag=document.getElementById("setSaved"); tag.classList.remove("hidden"); setTimeout(()=>tag.classList.add("hidden"),1500);
+    });
+
+    /* ---------- ADD SERVICE + CLOUDINARY UPLOAD ---------- */
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
+    let fileBlob = null;
+
+    dropZone.addEventListener("click", ()=> fileInput.click());
+    dropZone.addEventListener("dragover", e=>{ e.preventDefault(); dropZone.style.background="#f8fafc"; });
+    dropZone.addEventListener("dragleave", ()=> dropZone.style.background="" );
+    dropZone.addEventListener("drop", e=>{
+      e.preventDefault(); dropZone.style.background="";
+      if(e.dataTransfer.files && e.dataTransfer.files[0]) { setFile(e.dataTransfer.files[0]); }
+    });
+    fileInput.addEventListener("change", (e)=>{ if(e.target.files[0]) setFile(e.target.files[0]); });
+
+    function setFile(f){
+      if(!f.type.startsWith("image/")) return alert("Please select an image file.");
+      if(f.size>10*1024*1024) return alert("Max 10MB.");
+      fileBlob = f; fileName.textContent = f.name;
+    }
+
+    document.getElementById("serviceForm").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const name = document.getElementById("svc-name").value.trim();
+      const desc = document.getElementById("svc-desc").value.trim();
+      const price = parseFloat(document.getElementById("svc-price").value || "0");
+      if(!name) return;
+
+      let imageUrl = "";
+      try {
+        if (fileBlob) {
+          const fd = new FormData();
+          fd.append("file", fileBlob);
+          fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+          fd.append("folder", "printit/services");
+          const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: fd });
+          if (!res.ok) throw new Error(`Cloudinary upload failed: ${res.status}`);
+          const data = await res.json();
+          imageUrl = data.secure_url;
+        }
+
+        await addDoc(collection(db,"vendors",VENDOR_ID,"services"), {
+          serviceName: name,
+          serviceDescription: desc,
+          servicePrice: price,
+          imageUrl,
+          createdAt: new Date().toISOString()
+        });
+
+        e.target.reset();
+        fileBlob=null; fileName.textContent="";
+        alert("Service added");
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Upload failed");
+      }
+    });
+
+    /* ---------- SERVICES LISTENERS ---------- */
+    function listenServices(){
+      onSnapshot(collection(db,"vendors",VENDOR_ID,"services"), (snap)=>{
+        const a=document.getElementById("servicesGrid");
+        const b=document.getElementById("servicesGrid2");
+        const emA=document.getElementById("servicesEmpty");
+        const emB=document.getElementById("servicesEmpty2");
+        a.innerHTML=""; b.innerHTML="";
+        const count = snap.size;
+        document.getElementById("stat-services").textContent = String(count);
+
+        if(count===0){ emA.classList.remove("hidden"); emB.classList.remove("hidden"); return; }
+        emA.classList.add("hidden"); emB.classList.add("hidden");
+
+        snap.forEach(s=>{
+          const d=s.data();
+          const card=serviceCard(s.id,d);
+          a.appendChild(card.cloneNode(true));
+          b.appendChild(card);
+        });
+      });
+    }
+
+    function serviceCard(id,d){
+      const wrap=document.createElement("div");
+      wrap.className="border bg-white rounded-xl overflow-hidden";
+      const img = d.imageUrl || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1200&auto=format&fit=crop";
+      wrap.innerHTML = `
+        <img src="${img}" class="w-full h-36 object-cover" alt="">
+        <div class="p-4">
+          <h3 class="font-semibold text-slate-800">${escapeHtml(d.serviceName||"Service")}</h3>
+          <p class="text-sm text-gray-600 mt-1">${escapeHtml(d.serviceDescription||"")}</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="text-sky-600 font-medium">₱${(d.servicePrice||0).toLocaleString()}</span>
+            <button data-id="${id}" class="delSvc text-red-600 hover:bg-red-50 px-3 py-1 rounded-md text-sm">Delete</button>
+          </div>
+        </div>`;
+      setTimeout(()=>{
+        wrap.querySelector(".delSvc").addEventListener("click", async (ev)=>{
+          if(!confirm("Delete this service?")) return;
+          await deleteDoc(doc(db,"vendors",VENDOR_ID,"services", ev.target.dataset.id));
+        });
+      });
+      return wrap;
+    }
+
+    /* ---------- ORDERS ---------- */
+    function listenOrders(){
+      const qOrders = query(collection(db,"vendors",VENDOR_ID,"orders"), orderBy("createdAt","desc"));
+      onSnapshot(qOrders,(snap)=>{
+        const c=document.getElementById("ordersList");
+        const empty=document.getElementById("ordersEmpty");
+        c.innerHTML="";
+        document.getElementById("stat-total-orders").textContent = String(snap.size);
+
+        if (snap.empty){ empty.classList.remove("hidden"); return; }
+        empty.classList.add("hidden");
+
+        snap.forEach(oDoc=>{
+          const o = oDoc.data();
+          const status = o.status || "pending";
+          const date = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate().toLocaleString() : "";
+          const cls = status==="pending" ? "bg-yellow-100 text-yellow-700"
+                 : status==="accepted" ? "bg-blue-100 text-blue-700"
+                 : status==="completed" ? "bg-green-100 text-green-700"
+                 : status==="canceled" ? "bg-red-100 text-red-700"
+                 : "bg-gray-100 text-gray-700";
+
+          const el=document.createElement("div");
+          el.className="border rounded-xl bg-white p-4 flex justify-between gap-4";
+          el.innerHTML = `
+            <div class="text-sm">
+              <p class="text-gray-500">Service</p>
+              <p class="font-semibold text-slate-800">${escapeHtml(o.serviceName||"Service")}</p>
+              <p class="text-gray-500 mt-1">Customer: ${escapeHtml(o.customerName||"N/A")} (${escapeHtml(o.customerContact||"no contact")})</p>
+              <p class="text-gray-500 mt-1">Qty: ${o.qty||1}</p>
+              <span class="pill ${cls} inline-block mt-1">${status}</span>
+              ${date ? `<p class="text-xs text-gray-400 mt-1">${date}</p>` : ""}
+            </div>
+            <div class="flex flex-col items-end gap-2">
+              ${o.fileURL ? `<a href="${o.fileURL}" target="_blank" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm">Open file</a>` : `<span class="text-xs text-gray-400 italic">No file</span>`}
+              <div class="flex gap-2">
+                <button class="px-3 py-1 rounded-md text-sm bg-amber-500 text-white" data-act="accepted"  data-id="${oDoc.id}" data-cuid="${o.customerUid||""}">Accept</button>
+                <button class="px-3 py-1 rounded-md text-sm bg-green-600 text-white" data-act="completed" data-id="${oDoc.id}" data-cuid="${o.customerUid||""}">Complete</button>
+                <button class="px-3 py-1 rounded-md text-sm bg-red-500 text-white"   data-act="canceled"  data-id="${oDoc.id}" data-cuid="${o.customerUid||""}">Cancel</button>
+              </div>
+            </div>
+          `;
+          c.appendChild(el);
+        });
+
+        c.querySelectorAll("[data-act]").forEach(btn=>{
+          btn.addEventListener("click", ()=> setStatus(btn.dataset.id, btn.dataset.act, btn.dataset.cuid));
+        });
+      });
+    }
+
+    async function setStatus(orderId, status, customerUid){
+      await updateDoc(doc(db,"vendors",VENDOR_ID,"orders",orderId), { status });
+      if (customerUid) {
+        try {
+          await updateDoc(doc(db,"users",customerUid,"orders",orderId), { status });
+        } catch (err) {
+          console.warn("could not update customer copy:", err.message);
+        }
+      }
+    }
+
+    /* ---------- Helpers ---------- */
+    function escapeHtml(s){ return String(s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m])); }
+  </script>
+</body>
+</html>
