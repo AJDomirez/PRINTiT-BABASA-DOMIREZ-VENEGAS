@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Print-IT · Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{background:#f7fafc}
+    .card{border-radius:1rem;box-shadow:0 8px 22px rgba(15,23,42,.06)}
+    .img-wrap{border-top-left-radius:1rem;border-top-right-radius:1rem;overflow:hidden;background:#eef2f7}
+    .badge{font-size:.75rem}
+    .star{color:#fbbf24}
+    .truncate-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .skeleton{position:relative;overflow:hidden;background:#e5e7eb}
+    .skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shimmer 1.2s infinite}
+    @keyframes shimmer{to{transform:translateX(100%)}}
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Top bar -->
+  <header class="bg-white sticky top-0 z-30 border-b">
+    <div class="max-w-7xl mx-auto px-5 py-4 flex items-center gap-4">
+      <!-- Logo -->
+      <div class="flex items-center gap-2">
+        <img src="logo-placeholder.png" alt="logo" class="w-9 h-9 rounded-md bg-gray-100 object-cover">
+        <span class="text-lg font-semibold text-sky-600">PrintHub</span>
+      </div>
+
+      <!-- Search -->
+      <div class="flex-1">
+        <div class="max-w-2xl mx-auto relative">
+          <span class="absolute left-4 top-[10px] text-gray-400">📍</span>
+          <input id="searchInput" placeholder="Search for printing services near you..."
+                 class="w-full rounded-full border bg-white px-12 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+          <span class="absolute right-4 top-[10px] text-gray-400">🔎</span>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <button id="logoutBtn"
+        class="ml-auto inline-flex items-center gap-2 bg-white border px-3 py-2 rounded-md text-gray-700 hover:bg-gray-50">
+        <span>🚪</span> Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- Heading -->
+  <section class="max-w-7xl mx-auto px-5 py-6">
+    <h2 class="text-2xl font-semibold text-slate-800">Printing Services Near You</h2>
+    <p class="text-gray-500">Find the best printing solutions in your area</p>
+  </section>
+
+  <!-- Vendor grid -->
+  <main class="max-w-7xl mx-auto px-5 pb-12">
+    <div id="grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+    <div id="stateBox" class="text-center text-gray-500 py-16">Loading shops...</div>
+  </main>
+
+  <!-- Firebase + page logic -->
+  <script type="module">
+    // expects ./firebase-config.js exporting: export const firebaseConfig = { ... }
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getFirestore, collection, onSnapshot, doc, getDocs
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const grid = document.getElementById("grid");
+    const stateBox = document.getElementById("stateBox");
+    const searchInput = document.getElementById("searchInput");
+
+    // Auth guard
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "customer-login.html";
+        return;
+      }
+    });
+
+    // Sign out
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
+    });
+
+    // Vendors + images
+    let vendors = [];
+    const heroCache = new Map(); // vendorId -> imageUrl
+
+    onSnapshot(collection(db, "vendors"), (snap) => {
+      vendors = [];
+      snap.forEach((d) => vendors.push({ id: d.id, ...d.data() }));
+      render();
+      // after first render, lazily resolve missing images
+      vendors.forEach(v => ensureVendorImage(v));
+    }, (err) => {
+      stateBox.textContent = "Failed to load vendors: " + err.message;
+    });
+
+    // Find an image for the vendor:
+    // 1) vendor.shopImage or vendor.imageUrl
+    // 2) first service.imageUrl (if any)
+    // 3) fallback placeholder
+    const FALLBACK =
+      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1200&auto=format&fit=crop";
+
+    function getVendorImageSync(v) {
+      return v.shopImage || v.imageUrl || heroCache.get(v.id) || null;
+    }
+
+    async function ensureVendorImage(v) {
+      if (getVendorImageSync(v)) return; // already have one
+      try {
+        // look into services subcollection for first image
+        const srvSnap = await getDocs(collection(db, "vendors", v.id, "services"));
+        for (const s of srvSnap.docs) {
+          const d = s.data();
+          if (d.imageUrl) {
+            heroCache.set(v.id, d.imageUrl);
+            // update the card if it's on screen
+            const img = document.querySelector(`[data-vid="${v.id}"] .heroimg`);
+            if (img) img.src = d.imageUrl;
+            return;
+          }
+        }
+        // if no service had image, set fallback so we don't re-query
+        heroCache.set(v.id, FALLBACK);
+      } catch(e) {
+        console.warn("image lookup failed for vendor", v.id, e.message);
+        heroCache.set(v.id, FALLBACK);
+      }
+    }
+
+    // Search filter
+    searchInput.addEventListener("input", render);
+
+    function render() {
+      const q = searchInput.value.trim().toLowerCase();
+      let list = vendors.slice();
+
+      if (q) {
+        list = list.filter(v => {
+          const hay = `${v.shopName||""} ${v.address||""} ${v.description||v.about||""}`.toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      grid.innerHTML = "";
+      if (!list.length) {
+        stateBox.textContent = vendors.length ? "No shops match your search." : "Loading shops...";
+        stateBox.classList.remove("hidden");
+        return;
+      }
+      stateBox.classList.add("hidden");
+
+      list.forEach(v => grid.appendChild(card(v)));
+    }
+
+    function card(v) {
+      const wrap = document.createElement("article");
+      wrap.className = "card bg-white overflow-hidden flex flex-col";
+      wrap.setAttribute("data-vid", v.id);
+
+      const imgUrl = getVendorImageSync(v) || FALLBACK;
+
+      wrap.innerHTML = `
+        <div class="img-wrap">
+          <img src="${imgUrl}" alt="${escapeHTML(v.shopName || "Shop image")}"
+               class="heroimg w-full h-40 object-cover ${imgUrl ? "" : "skeleton"}" />
+        </div>
+        <div class="p-4 flex-1 flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-slate-800 leading-tight">${escapeHTML(v.shopName || "Unnamed Shop")}</h3>
+            <div class="flex items-center gap-1 text-sm">
+              <span class="star">★</span><span class="text-gray-700">${typeof v.rating === "number" ? v.rating.toFixed(1) : (v.rating || "4.6")}</span>
+            </div>
+          </div>
+
+          <p class="text-sm text-gray-600 truncate-2">${escapeHTML(v.description || v.about || "Professional printing services with quick turnaround.")}</p>
+
+          <div class="mt-1 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-4 text-gray-500">
+              <span>📍 ${v.address ? escapeHTML(v.address) : "Address not provided"}</span>
+            </div>
+            <span class="badge ${v.isOpen===false ? 'text-red-500' : 'text-emerald-600'}">
+              ${v.isOpen===false ? (v.closesAt ? `Closes at ${escapeHTML(v.closesAt)}` : 'Closed') : (v.closesAt ? `Open · Closes at ${escapeHTML(v.closesAt)}` : 'Open now')}
+            </span>
+          </div>
+
+          <button class="mt-3 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-md font-medium"
+                  onclick="window.location.href='shop.html?id=${v.id}'">View Store</button>
+        </div>
+      `;
+      return wrap;
+    }
+
+    function escapeHTML(s){
+      return String(s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+    }
+  </script>
+</body>
+</html>
