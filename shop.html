@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Print-IT · Shop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{background:#f3f6fb;font-family:Inter,system-ui,Arial}
+    .card{background:#fff;border-radius:1rem;box-shadow:0 8px 22px rgba(15,23,42,.06)}
+    .hero-img{height:220px;border-radius:1rem;object-fit:cover;width:100%}
+    .pill{font-size:.72rem;border-radius:999px;padding:.15rem .5rem}
+    .truncate-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .skeleton{position:relative;overflow:hidden;background:#e5e7eb}
+    .skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shimmer 1.2s infinite}
+    @keyframes shimmer{to{transform:translateX(100%)}}
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Top bar -->
+  <header class="bg-white border-b">
+    <div class="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between">
+      <button onclick="window.location.href='home.html'" class="text-sm text-gray-600 hover:text-sky-600">← Back to Home</button>
+      <div class="flex items-center gap-2">
+        <img src="logo-placeholder.png" class="w-8 h-8 rounded-md bg-gray-100 object-cover" alt="logo">
+        <span class="text-sky-600 font-semibold">PrintHub</span>
+      </div>
+      <button id="logoutBtn" class="text-sm text-gray-600 hover:text-red-600">🚪 Logout</button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-5 py-6 space-y-6">
+    <!-- HERO -->
+    <section class="card p-0 overflow-hidden">
+      <div class="relative">
+        <img id="heroImage" class="hero-img skeleton" alt="Shop banner">
+        <div class="absolute left-5 bottom-4 bg-black/45 backdrop-blur-sm text-white rounded-xl px-4 py-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-white/95 flex items-center justify-center text-sky-600">🖨️</div>
+            <div>
+              <h1 id="shopTitle" class="text-xl md:text-2xl font-bold drop-shadow">Loading shop...</h1>
+              <div class="flex items-center gap-3 text-xs md:text-sm mt-1">
+                <span id="ratingBox" class="hidden"><span class="text-amber-400">★</span> <span id="ratingVal">4.6</span></span>
+                <span id="distanceBox" class="hidden">📍 <span id="distanceVal"></span></span>
+                <span id="openBadge" class="pill bg-emerald-500 text-white hidden">Open now</span>
+                <span id="closedBadge" class="pill bg-red-500 text-white hidden">Closed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRID -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: Services -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-slate-800">Our Services</h2>
+        </div>
+
+        <div id="servicesList" class="grid sm:grid-cols-2 gap-5">
+          <!-- Service cards injected here -->
+        </div>
+
+        <p id="noServices" class="text-sm text-gray-500 text-center py-10 hidden">
+          This shop has no services yet.
+        </p>
+      </div>
+
+      <!-- Right: Info -->
+      <div class="space-y-6">
+        <!-- Business Info -->
+        <div class="card p-5">
+          <h3 class="font-semibold text-slate-800 mb-3">Business Information</h3>
+          <ul class="text-sm text-gray-700 space-y-2">
+            <li id="infoAddress" class="flex gap-3"><span>📍</span><span></span></li>
+            <li id="infoPhone" class="flex gap-3 hidden"><span>📞</span><span></span></li>
+            <li id="infoEmail" class="flex gap-3 hidden"><span>✉️</span><span></span></li>
+          </ul>
+          <a id="mapLink" target="_blank"
+             class="mt-3 inline-flex items-center gap-2 text-sky-600 hover:underline hidden">📍 Open in Google Maps</a>
+        </div>
+
+        <!-- Business Hours -->
+        <div class="card p-5">
+          <h3 class="font-semibold text-slate-800 mb-3">Business Hours</h3>
+          <div id="hoursBox" class="text-sm text-gray-700 space-y-1">
+            <p class="text-gray-400">Not provided.</p>
+          </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="card p-5">
+          <h3 class="font-semibold text-slate-800 mb-3">Recent Reviews</h3>
+          <div id="reviewsBox" class="space-y-3">
+            <p class="text-sm text-gray-400">No reviews yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ORDER MODAL -->
+  <div id="orderModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl w-full max-w-md p-6 relative">
+      <button id="closeModal" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">✕</button>
+      <h3 class="text-lg font-semibold mb-4">Place Order</h3>
+      <form id="orderForm" class="space-y-3">
+        <input type="hidden" id="orderServiceId" />
+        <input type="hidden" id="orderServiceName" />
+        <p id="orderServiceLabel" class="font-medium text-gray-800 mb-2"></p>
+
+        <div>
+          <label class="text-sm text-gray-600">Your Name</label>
+          <input id="customerName" class="w-full border rounded-md p-2" required />
+        </div>
+
+        <div>
+          <label class="text-sm text-gray-600">Contact (email/phone)</label>
+          <input id="customerContact" class="w-full border rounded-md p-2" required />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-sm text-gray-600">Quantity</label>
+            <input id="orderQty" type="number" min="1" value="1" class="w-full border rounded-md p-2" />
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">Color</label>
+            <select id="colorMode" class="w-full border rounded-md p-2">
+              <option value="colored">Colored</option>
+              <option value="black-white">Black & White</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-sm text-gray-600">Size</label>
+            <select id="size" class="w-full border rounded-md p-2">
+              <option value="A4">A4</option>
+              <option value="A3">A3</option>
+              <option value="2x3ft">2x3 ft (tarp)</option>
+              <option value="3x5ft">3x5 ft (tarp)</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">Sides</label>
+            <select id="sides" class="w-full border rounded-md p-2">
+              <option value="single">Single</option>
+              <option value="double">Double</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm text-gray-600">File link (Google Drive, etc.)</label>
+          <input id="orderFileLink" type="url" class="w-full border rounded-md p-2" placeholder="https://..." />
+        </div>
+
+        <div>
+          <label class="text-sm text-gray-600">Notes</label>
+          <textarea id="orderNotes" class="w-full border rounded-md p-2" rows="2"></textarea>
+        </div>
+
+        <button class="w-full bg-sky-600 text-white py-2 rounded-md font-semibold hover:bg-sky-700">
+          Submit Order
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase + Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, getDocs, addDoc, setDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Elements
+    const heroImage = document.getElementById("heroImage");
+    const shopTitle = document.getElementById("shopTitle");
+    const ratingBox = document.getElementById("ratingBox");
+    const ratingVal = document.getElementById("ratingVal");
+    const distanceBox = document.getElementById("distanceBox");
+    const distanceVal = document.getElementById("distanceVal");
+    const openBadge = document.getElementById("openBadge");
+    const closedBadge = document.getElementById("closedBadge");
+
+    const infoAddress = document.querySelector("#infoAddress span:last-child");
+    const infoPhone = document.getElementById("infoPhone");
+    const infoPhoneVal = infoPhone?.querySelector("span:last-child");
+    const infoEmail = document.getElementById("infoEmail");
+    const infoEmailVal = infoEmail?.querySelector("span:last-child");
+    const mapLink = document.getElementById("mapLink");
+
+    const servicesList = document.getElementById("servicesList");
+    const noServices = document.getElementById("noServices");
+
+    const hoursBox = document.getElementById("hoursBox");
+    const reviewsBox = document.getElementById("reviewsBox");
+
+    // auth guard
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "auth.html";
+        return;
+      }
+    });
+
+    // logout
+    document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+      await signOut(auth);
+      window.location.href = "auth.html";
+    });
+
+    // get shop id
+    const params = new URLSearchParams(window.location.search);
+    const shopId = params.get("id");
+    if (!shopId) window.location.href = "home.html";
+
+    const FALLBACK_IMG = "https://images.unsplash.com/photo-1583964739856-eb5b08f6f5d6?q=80&w=1200&auto=format&fit=crop";
+
+    // load shop info + services + reviews
+    (async function init(){
+      try{
+        // shop doc
+        const vSnap = await getDoc(doc(db, "vendors", shopId));
+        if (!vSnap.exists()){
+          shopTitle.textContent = "Shop not found";
+          heroImage.src = FALLBACK_IMG; heroImage.classList.remove("skeleton");
+          return;
+        }
+        const v = vSnap.data();
+
+        // hero image: shopImage || first service image || fallback
+        heroImage.src = v.shopImage || FALLBACK_IMG;
+        heroImage.onload = () => heroImage.classList.remove("skeleton");
+        shopTitle.textContent = v.shopName || "Unnamed Shop";
+
+        if (typeof v.rating === "number" || v.rating) {
+          ratingVal.textContent = (typeof v.rating === "number") ? v.rating.toFixed(1) : v.rating;
+          ratingBox.classList.remove("hidden");
+        }
+        if (v.distance) {
+          distanceVal.textContent = v.distance + " miles away";
+          distanceBox.classList.remove("hidden");
+        }
+        if (v.isOpen === false) closedBadge.classList.remove("hidden");
+        else openBadge.classList.remove("hidden");
+
+        infoAddress.textContent = v.address || "No address provided";
+        if (v.phone) { infoPhoneVal.textContent = v.phone; infoPhone.classList.remove("hidden"); }
+        if (v.email) { infoEmailVal.textContent = v.email; infoEmail.classList.remove("hidden"); }
+        if (v.mapLink) { mapLink.href = v.mapLink; mapLink.classList.remove("hidden"); }
+
+        // hours (optional object like {Mon:"8:00 AM - 8:00 PM", ...})
+        if (v.businessHours && typeof v.businessHours === "object"){
+          hoursBox.innerHTML = "";
+          const order = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+          order.forEach(d=>{
+            const val = v.businessHours[d] || v.businessHours[d.slice(0,3)] || null;
+            const p = document.createElement("p");
+            p.innerHTML = `<span class="inline-block w-28 text-gray-500">${d}</span> <span>${val || "—"}</span>`;
+            hoursBox.appendChild(p);
+          });
+        }
+
+        // services
+        const sSnap = await getDocs(collection(db,"vendors",shopId,"services"));
+        servicesList.innerHTML = "";
+        if (sSnap.empty) { noServices.classList.remove("hidden"); }
+        else {
+          noServices.classList.add("hidden");
+          let firstServiceImage = null;
+
+          sSnap.forEach(s=>{
+            const d=s.data();
+            if (!v.shopImage && d.imageUrl && !firstServiceImage) {
+              // use first service image as hero if shopImage absent
+              firstServiceImage = d.imageUrl;
+              heroImage.src = firstServiceImage;
+            }
+            servicesList.appendChild(serviceCard(s.id, d));
+          });
+        }
+
+        // reviews (optional)
+        try {
+          const rSnap = await getDocs(collection(db,"vendors",shopId,"reviews"));
+          if (!rSnap.empty) {
+            reviewsBox.innerHTML = "";
+            rSnap.forEach(r=>{
+              const d=r.data();
+              reviewsBox.appendChild(reviewItem(d));
+            });
+          }
+        } catch { /* ignore if collection missing */ }
+
+      }catch(err){
+        console.error(err);
+        shopTitle.textContent = "Error loading shop";
+        heroImage.src = FALLBACK_IMG; heroImage.classList.remove("skeleton");
+      }
+    })();
+
+    function serviceCard(id, d){
+      const wrap = document.createElement("div");
+      wrap.className = "card overflow-hidden";
+      const img = d.imageUrl || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1200&auto=format&fit=crop";
+      const available = (d.available !== false);
+      wrap.innerHTML = `
+        <img src="${img}" class="w-full h-40 object-cover" alt="">
+        <div class="p-4">
+          <h4 class="font-semibold text-slate-800">${escapeHTML(d.serviceName || "Service")}</h4>
+          <p class="text-sm text-gray-600 mt-1 truncate-2">${escapeHTML(d.serviceDescription || "—")}</p>
+          <div class="mt-3 flex items-center justify-between">
+            <span class="text-sky-600 font-medium">₱${(d.servicePrice || 0).toLocaleString()}</span>
+            <span class="pill ${available ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}">
+              ${available ? "Available" : "Unavailable"}
+            </span>
+          </div>
+          <button class="mt-3 w-full bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-md orderBtn"
+            data-id="${id}" data-name="${escapeHTML(d.serviceName || "Service")}" data-price="${d.servicePrice || 0}">
+            Order Now
+          </button>
+        </div>
+      `;
+      // attach order handler
+      setTimeout(()=>{
+        wrap.querySelector(".orderBtn").addEventListener("click", (ev) => {
+          openOrderModal({
+            serviceId: ev.currentTarget.dataset.id,
+            serviceName: ev.currentTarget.dataset.name,
+            servicePrice: Number(ev.currentTarget.dataset.price || 0)
+          });
+        });
+      });
+      return wrap;
+    }
+
+    function reviewItem(d) {
+      const el = document.createElement("div");
+      const name = escapeHTML(d.name || "Anonymous");
+      const text = escapeHTML(d.text || "");
+      const stars = Number(d.rating || 5);
+      const starsHtml = "★".repeat(Math.max(1, Math.min(5, Math.round(stars))));
+      el.className = "border rounded-lg p-3 text-sm";
+      el.innerHTML = `
+        <div class="flex items-center justify-between">
+          <strong>${name}</strong>
+          <span class="text-amber-400">${starsHtml}</span>
+        </div>
+        <p class="text-gray-600 mt-1">${text}</p>
+      `;
+      return el;
+    }
+
+    /* ---------- Order modal ---------- */
+    const modal = document.getElementById("orderModal");
+    const closeModal = document.getElementById("closeModal");
+    closeModal.addEventListener("click", ()=> modal.classList.add("hidden"));
+
+    function openOrderModal({ serviceId, serviceName, servicePrice }) {
+      document.getElementById("orderServiceId").value = serviceId;
+      document.getElementById("orderServiceName").value = serviceName;
+      document.getElementById("orderServiceLabel").textContent = `${serviceName} (₱${servicePrice})`;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    document.getElementById("orderForm").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (!user){ alert("Please login again."); return; }
+
+      const serviceId = document.getElementById("orderServiceId").value;
+      const serviceName = document.getElementById("orderServiceName").value;
+      const customerName = document.getElementById("customerName").value.trim();
+      const customerContact = document.getElementById("customerContact").value.trim();
+      const qty = parseInt(document.getElementById("orderQty").value || "1", 10);
+      const colorMode = document.getElementById("colorMode").value;
+      const size = document.getElementById("size").value;
+      const sides = document.getElementById("sides").value;
+      const fileURL = document.getElementById("orderFileLink").value.trim();
+      const notes = document.getElementById("orderNotes").value;
+
+      const orderData = {
+        serviceId,
+        serviceName,
+        customerName,
+        customerContact,
+        qty,
+        colorMode,
+        size,
+        sides,
+        fileURL,
+        notes,
+        status: "pending",
+        createdAt: serverTimestamp(),
+        customerUid: user.uid,
+        vendorId: shopId
+      };
+
+      try {
+        // vendor master
+        const vendorOrderRef = await addDoc(collection(db,"vendors",shopId,"orders"), orderData);
+        // customer copy (same id)
+        await setDoc(doc(db,"users",user.uid,"orders",vendorOrderRef.id), {
+          ...orderData,
+          vendorOrderId: vendorOrderRef.id
+        });
+
+        alert("✅ Order submitted!");
+        // Reset the form in plain browser JS (remove TypeScript cast which causes a syntax error)
+        if (e.currentTarget instanceof HTMLFormElement) {
+          e.currentTarget.reset();
+        } else if (e.target instanceof HTMLFormElement) {
+          e.target.reset();
+        }
+        modal.classList.add("hidden");
+      } catch (err) {
+        console.error(err);
+        alert("Error creating order: " + (err.message || err));
+      }
+    });
+
+    function escapeHTML(s){
+      return String(s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+    }
+  </script>
+</body>
+</html>
