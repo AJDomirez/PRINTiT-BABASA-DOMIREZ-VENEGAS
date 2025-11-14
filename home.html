@@ -1,208 +1,484 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Print-IT · Home</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..600,0..1,-50..200" rel="stylesheet" />
+
+  <!-- prevent cache while editing -->
+  <meta http-equiv="Cache-Control" content="no-store" />
+
   <style>
-    body{background:#f7fafc}
-    .card{border-radius:1rem;box-shadow:0 8px 22px rgba(15,23,42,.06)}
-    .img-wrap{border-top-left-radius:1rem;border-top-right-radius:1rem;overflow:hidden;background:#eef2f7}
-    .badge{font-size:.75rem}
-    .star{color:#fbbf24}
-    .truncate-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .skeleton{position:relative;overflow:hidden;background:#e5e7eb}
-    .skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shimmer 1.2s infinite}
-    @keyframes shimmer{to{transform:translateX(100%)}}
+    .material-symbols-rounded{
+      font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 24;
+      font-size:1.05rem;line-height:1;vertical-align:middle
+    }
+    .container{max-width:1200px}
+    .clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+    /* --- Blue bubble + polka-dot background --- */
+    body {
+  min-height: 100vh;
+  background-color: #eaf3ff; /* lighter sky-blue base */
+  font-family: Inter, system-ui, Arial;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 🫧 More visible, soft glowing bubbles */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle 100px at 15% 25%, rgba(59,130,246,0.25), transparent 70%),
+    radial-gradient(circle 150px at 45% 15%, rgba(37,99,235,0.22), transparent 70%),
+    radial-gradient(circle 200px at 80% 25%, rgba(2,132,199,0.25), transparent 70%),
+    radial-gradient(circle 160px at 20% 75%, rgba(59,130,246,0.25), transparent 70%),
+    radial-gradient(circle 240px at 85% 85%, rgba(96,165,250,0.25), transparent 70%),
+    radial-gradient(circle 120px at 60% 60%, rgba(147,197,253,0.25), transparent 70%),
+    radial-gradient(circle 180px at 5% 90%, rgba(37,99,235,0.20), transparent 70%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  filter: blur(0.3px);
+  opacity: 1; /* make fully visible */
+  transition: opacity 1s ease;
+}
+
+/* Optional gentle motion for modern feel */
+@keyframes bubbleFloat {
+  0%   { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+  50%  { background-position: 1% 2%, -1% 1%, 1% -1%, -1% 1%, 1% -1%, -1% -1%, 1% 1%; }
+  100% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+}
+body::before {
+  animation: bubbleFloat 25s ease-in-out infinite alternate;
+}
+
+
+
+    /* Slide-over (orders drawer) */
+    .drawer{position:fixed;inset:0;display:none}
+    .drawer.open{display:block}
+    .drawer-bg{position:absolute;inset:0;background:rgba(0,0,0,.35);opacity:0;transition:opacity .2s}
+    .drawer.open .drawer-bg{opacity:1}
+    .drawer-panel{
+      position:absolute;top:0;right:0;height:100%;width:min(92vw,420px);
+      background:#fff;border-left:1px solid #e5e7eb;transform:translateX(100%);
+      transition:transform .25s;display:flex;flex-direction:column
+    }
+    .drawer.open .drawer-panel{transform:translateX(0)}
+    .btn{padding:.45rem .75rem;border-radius:.6rem;font-size:.9rem}
+    .badge{font-size:.72rem;border-radius:999px;padding:.15rem .55rem}
+    #ordersCount{ line-height: 1; }
   </style>
 </head>
 <body class="min-h-screen">
 
   <!-- Top bar -->
-  <header class="bg-white sticky top-0 z-30 border-b">
-    <div class="max-w-7xl mx-auto px-5 py-4 flex items-center gap-4">
-      <!-- Logo -->
-      <div class="flex items-center gap-2">
-        <img src="logo-placeholder.png" alt="logo" class="w-9 h-9 rounded-md bg-gray-100 object-cover">
-        <span class="text-lg font-semibold text-sky-600">Print-IT</span>
-      </div>
+<header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-gray-200">
+  <div class="container mx-auto px-5 py-3 grid grid-cols-[auto_1fr_auto] items-center gap-3">
+    <!-- Left: brand -->
+    <a href="home.html" class="flex items-center gap-2 min-w-0">
+      <img src="logo-placeholder.png" alt="PrintHub" class="w-7 h-7 rounded-md object-contain"/>
+      <span class="text-base font-semibold text-gray-900 truncate">Print-IT</span>
+    </a>
 
-      <!-- Search -->
-      <div class="flex-1">
-        <div class="max-w-2xl mx-auto relative">
-          <span class="absolute left-4 top-[10px] text-gray-400">📍</span>
-          <input id="searchInput" placeholder="Search for printing services near you..."
-                 class="w-full rounded-full border bg-white px-12 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-200" />
-          <span class="absolute right-4 top-[10px] text-gray-400">🔎</span>
-        </div>
+    <!-- Center: search -->
+    <div class="justify-self-center w-full max-w-2xl">
+      <div class="relative">
+        <input id="searchInput"
+               class="w-full rounded-full border border-gray-200 pl-11 pr-4 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+               placeholder="Search for printing services near you..."/>
+        <span class="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
       </div>
+    </div>
 
-      <!-- Logout -->
+    <!-- Right: My Orders + Logout -->
+    <div class="justify-self-end flex items-center gap-2">
+      <button id="openOrdersBtn"
+              class="inline-flex items-center gap-1 rounded-lg border border-sky-200 px-3 py-1.5 text-sm text-sky-700 hover:bg-sky-50">
+        <span class="material-symbols-rounded">receipt_long</span>
+        <span>My Orders</span>
+        <span id="ordersCount"
+              class="hidden ml-1 inline-flex items-center justify-center text-[11px] min-w-[18px] h-[18px] rounded-full bg-sky-600 text-white px-1">
+          0
+        </span>
+      </button>
+
       <button id="logoutBtn"
-        class="ml-auto inline-flex items-center gap-2 bg-white border px-3 py-2 rounded-md text-gray-700 hover:bg-gray-50">
-        <span>🚪</span> Logout
+              class="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 rounded-lg border border-gray-200 px-3 py-1.5 text-sm">
+        <span class="material-symbols-rounded">logout</span>
+        <span>Logout</span>
       </button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <!-- Heading -->
-  <section class="max-w-7xl mx-auto px-5 py-6">
-    <h2 class="text-2xl font-semibold text-slate-800">Printing Services Near You</h2>
-    <p class="text-gray-500">Find the best printing solutions in your area</p>
+  <!-- Intro -->
+  <section class="container mx-auto px-5 pt-8">
+    <h2 class="text-[22px] font-semibold text-gray-900">Printing Services Near You</h2>
+    <p class="text-sm text-gray-500">Find the best printing solutions in your area</p>
   </section>
 
-  <!-- Vendor grid -->
-  <main class="max-w-7xl mx-auto px-5 pb-12">
-    <div id="grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
-    <div id="stateBox" class="text-center text-gray-500 py-16">Loading shops...</div>
+  <!-- Status -->
+  <div id="statusBar" class="container mx-auto px-5 hidden mt-4 text-sm"></div>
+
+  <!-- Vendors -->
+  <main class="container mx-auto px-5 py-6">
+    <div id="vendorsGrid" class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <!-- cards injected here -->
+    </div>
+    <div id="emptyState" class="hidden text-center text-gray-500 text-sm mt-8">
+      No shops found.
+    </div>
   </main>
 
-  <!-- Firebase + page logic -->
+  <!-- Slide-over: My Orders -->
+  <div id="ordersDrawer" class="drawer z-30">
+    <div class="drawer-bg" id="ordersBg"></div>
+    <aside class="drawer-panel">
+      <!-- Header -->
+      <div class="px-4 py-3 border-b bg-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-rounded text-sky-600">receipt_long</span>
+          <h3 class="font-semibold text-slate-800">My Orders</h3>
+        </div>
+        <button id="closeOrdersBtn" class="text-gray-500 hover:text-gray-800">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <!-- List -->
+      <div id="ordersList" class="flex-1 overflow-y-auto divide-y">
+        <!-- rows injected -->
+      </div>
+
+      <!-- Empty state -->
+      <div id="ordersEmpty" class="hidden p-6 text-sm text-gray-500">
+        No orders yet.
+      </div>
+
+      <!-- Footer -->
+      <div class="px-4 py-3 border-t text-xs text-gray-500">
+        You can cancel pending orders or delete them from your view.
+      </div>
+    </aside>
+  </div>
+
+  <!-- Firebase + App -->
   <script type="module">
-    // expects ./firebase-config.js exporting: export const firebaseConfig = { ... }
+    // Firebase v11
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import {
-      getFirestore, collection, onSnapshot, doc, getDocs
+      getFirestore, collection, getDocs, query, orderBy, limit,
+      onSnapshot, doc, writeBatch, deleteDoc
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import { firebaseConfig } from "./firebase-config.js";
 
+    // Init
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const grid = document.getElementById("grid");
-    const stateBox = document.getElementById("stateBox");
+    // Elements
+    const logoutBtn   = document.getElementById("logoutBtn");
+    const grid        = document.getElementById("vendorsGrid");
+    const emptyState  = document.getElementById("emptyState");
     const searchInput = document.getElementById("searchInput");
+    const statusBar   = document.getElementById("statusBar");
+
+    const openOrdersBtn  = document.getElementById("openOrdersBtn");
+    const ordersDrawer   = document.getElementById("ordersDrawer");
+    const ordersBg       = document.getElementById("ordersBg");
+    const closeOrdersBtn = document.getElementById("closeOrdersBtn");
+    const ordersList     = document.getElementById("ordersList");
+    const ordersEmpty    = document.getElementById("ordersEmpty");
+    const ordersCount    = document.getElementById("ordersCount");
+
+    // State
+    let allVendors = [];
+    let unSubOrders = null;
+    let currentUser = null;
+
+    // Helpers
+    const esc = (s)=> (s??"").toString().replace(/[&<>"']/g,(c)=>({ "&":"&amp;","<":"&lt;","&gt;":">","\"":"&quot;","'":"&#39;" }[c]));
+    const coalesce = (...v)=> v.find(x=>x!==undefined && x!==null && x!=="") ?? "";
+
+    function firstImage(v){
+      const hero = coalesce(v.coverImage, v.heroImage, v.bannerImage, "");
+      if (hero) return hero;
+      const services = Array.isArray(v.services) ? v.services : [];
+      const img = coalesce(services?.[0]?.image, services?.[0]?.photoUrl, services?.[0]?.imageUrl, "");
+      return img || "https://via.placeholder.com/640x380.png?text=Shop+Image";
+    }
+
+    function matchVendor(v, term){
+      if (!term) return true;
+      const t = term.toLowerCase();
+      const fields = [
+        v.name, v.displayName, v.shopName,
+        v.address, v.city, v.email, v.phone, v.description
+      ].filter(Boolean).map(s=>String(s).toLowerCase());
+      const services = Array.isArray(v.services) ? v.services : [];
+      for (const s of services){
+        if (s?.name) fields.push(String(s.name).toLowerCase());
+        if (s?.category) fields.push(String(s.category).toLowerCase());
+      }
+      return fields.some(f=>f.includes(t));
+    }
+
+    // Card markup
+    function vendorCardHTML(id, v){
+      const href   = `shop.html?id=${encodeURIComponent(id)}`;
+      const img    = esc(firstImage(v));
+      const name   = esc(coalesce(v.name, v.displayName, v.shopName, "Untitled Shop"));
+      const desc   = esc(v.description || "Professional printing services with quick turnaround.");
+      const address= esc(coalesce(v.address, v.city, ""));
+      const rating = v.rating ?? v.stars;
+      const isOpen = v.isOpen === true || v.open === "now";
+
+      return `
+        <article class="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition">
+          <a href="${href}" class="block">
+            <div class="h-44 bg-gray-100">
+              <img src="${img}" alt="${name}" class="w-full h-full object-cover"/>
+            </div>
+          </a>
+
+          <div class="p-4">
+            <div class="flex items-center justify-between gap-3">
+              <a href="${href}" class="text-[15px] font-semibold text-gray-900 truncate">${name}</a>
+              ${rating!=null ? `
+                <div class="flex items-center gap-1 text-xs text-gray-600 shrink-0">
+                  <span class="material-symbols-rounded">star</span>
+                  <span>${Number(rating).toFixed(1)}</span>
+                </div>` : ``}
+            </div>
+
+            <p class="mt-1 text-[13px] text-gray-600 clamp-2">${desc}</p>
+
+            <div class="mt-2 flex items-center justify-between text-xs text-gray-600">
+              <span class="inline-flex items-center gap-1 min-w-0">
+                <span class="material-symbols-rounded">location_on</span>
+                <span class="truncate">${address || "—"}</span>
+              </span>
+              <span class="inline-flex items-center gap-1 ${isOpen ? 'text-emerald-600' : 'text-gray-500'}">
+                <span class="material-symbols-rounded">schedule</span>
+                ${isOpen ? 'Open now' : '—'}
+              </span>
+            </div>
+
+            <div class="mt-4">
+              <a href="${href}" class="inline-flex items-center justify-center w-full rounded-lg bg-blue-600 text-white py-2 text-sm font-semibold hover:bg-blue-700 transition">
+                View Store
+              </a>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function render(list){
+      grid.innerHTML = list.map(({id, data}) => vendorCardHTML(id, data)).join("");
+      emptyState.classList.toggle("hidden", list.length !== 0);
+    }
+
+    function setStatus(msg, type="info"){
+      const bar = statusBar;
+      if (!msg){ bar.className="container mx-auto px-5 hidden"; bar.textContent=""; return; }
+      const base="container mx-auto px-5 mb-4 px-3 py-2 rounded-lg";
+      const pal = type==="error" ? "bg-red-50 border border-red-200 text-red-700"
+                                 : "bg-blue-50 border border-blue-200 text-blue-700";
+      bar.className = `${base} ${pal}`;
+      bar.textContent = msg;
+    }
 
     // Auth guard
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "auth.html";
-        return;
-      }
+    onAuthStateChanged(auth, async (user)=>{
+      if (!user){ window.location.href = "auth.html"; return; }
+      currentUser = user;
+      await loadVendors();
     });
 
-    // Sign out
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.href = "auth.html";
+    // Logout
+    logoutBtn.addEventListener("click", async ()=>{
+      try { await signOut(auth); window.location.href="auth.html"; }
+      catch(e){ setStatus(e?.message || "Could not log out.","error"); }
     });
 
-    // Vendors + images
-    let vendors = [];
-    const heroCache = new Map(); // vendorId -> imageUrl
+    // Load vendors
+    async function loadVendors(){
+      setStatus("Loading shops…");
+      try{
+        const ref = collection(db,"vendors");
+        let qy = query(ref, orderBy("createdAt","desc"), limit(100));
+        const snap = await getDocs(qy);
+        allVendors = [];
+        snap.forEach(d=> allVendors.push({ id:d.id, data:d.data()||{} }));
 
-    onSnapshot(collection(db, "vendors"), (snap) => {
-      vendors = [];
-      snap.forEach((d) => vendors.push({ id: d.id, ...d.data() }));
-      render();
-      // after first render, lazily resolve missing images
-      vendors.forEach(v => ensureVendorImage(v));
-    }, (err) => {
-      stateBox.textContent = "Failed to load vendors: " + err.message;
-    });
-
-    // Find an image for the vendor:
-    // 1) vendor.shopImage or vendor.imageUrl
-    // 2) first service.imageUrl (if any)
-    // 3) fallback placeholder
-    const FALLBACK =
-      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1200&auto=format&fit=crop";
-
-    function getVendorImageSync(v) {
-      return v.shopImage || v.imageUrl || heroCache.get(v.id) || null;
-    }
-
-    async function ensureVendorImage(v) {
-      if (getVendorImageSync(v)) return; // already have one
-      try {
-        // look into services subcollection for first image
-        const srvSnap = await getDocs(collection(db, "vendors", v.id, "services"));
-        for (const s of srvSnap.docs) {
-          const d = s.data();
-          if (d.imageUrl) {
-            heroCache.set(v.id, d.imageUrl);
-            // update the card if it's on screen
-            const img = document.querySelector(`[data-vid="${v.id}"] .heroimg`);
-            if (img) img.src = d.imageUrl;
-            return;
-          }
+        // Fallback if index missing or empty
+        if (allVendors.length === 0){
+          const alt = await getDocs(ref);
+          alt.forEach(d=> allVendors.push({ id:d.id, data:d.data()||{} }));
         }
-        // if no service had image, set fallback so we don't re-query
-        heroCache.set(v.id, FALLBACK);
-      } catch(e) {
-        console.warn("image lookup failed for vendor", v.id, e.message);
-        heroCache.set(v.id, FALLBACK);
+
+        render(allVendors);
+        setStatus("");
+      }catch(e){
+        try{
+          const ref = collection(db,"vendors");
+          const snap = await getDocs(ref);
+          allVendors = [];
+          snap.forEach(d=> allVendors.push({ id:d.id, data:d.data()||{} }));
+          render(allVendors);
+          setStatus("");
+        }catch(e2){
+          console.error(e, e2);
+          setStatus("Could not load shops. Please try again.","error");
+          render([]);
+        }
       }
     }
 
-    // Search filter
-    searchInput.addEventListener("input", render);
+    // Search
+    searchInput.addEventListener("input", (e)=>{
+      const term = e.target.value.trim().toLowerCase();
+      const filtered = allVendors.filter(v => matchVendor(v.data, term));
+      render(filtered);
+    });
 
-    function render() {
-      const q = searchInput.value.trim().toLowerCase();
-      let list = vendors.slice();
+    /* ------------------------ My Orders Drawer ------------------------ */
 
-      if (q) {
-        list = list.filter(v => {
-          const hay = `${v.shopName||""} ${v.address||""} ${v.description||v.about||""}`.toLowerCase();
-          return hay.includes(q);
+    function openDrawer(){ ordersDrawer.classList.add("open"); }
+    function closeDrawer(){ ordersDrawer.classList.remove("open"); }
+    openOrdersBtn.addEventListener("click", ()=>{
+      openDrawer();
+      attachOrdersStream();  // lazy attach
+    });
+    ordersBg.addEventListener("click", closeDrawer);
+    closeOrdersBtn.addEventListener("click", closeDrawer);
+    document.addEventListener("keydown", (e)=>{ if (e.key==="Escape") closeDrawer(); });
+
+    function attachOrdersStream(){
+      if (!currentUser) return;
+      if (unSubOrders) return; // already listening
+      const qOrders = query(collection(db, "users", currentUser.uid, "orders"), orderBy("createdAt","desc"));
+      unSubOrders = onSnapshot(qOrders, (snap)=>{
+        ordersList.innerHTML = "";
+
+        // count badge
+        const total = snap.size;
+        if (total > 0) {
+          ordersCount.textContent = total;
+          ordersCount.classList.remove("hidden");
+        } else {
+          ordersCount.classList.add("hidden");
+        }
+
+        if (snap.empty) { ordersEmpty.classList.remove("hidden"); return; }
+        ordersEmpty.classList.add("hidden");
+
+        snap.forEach(docSnap=>{
+          const o = docSnap.data();
+          const row = orderRow(docSnap.id, o);
+          ordersList.appendChild(row);
         });
-      }
-
-      grid.innerHTML = "";
-      if (!list.length) {
-        stateBox.textContent = vendors.length ? "No shops match your search." : "Loading shops...";
-        stateBox.classList.remove("hidden");
-        return;
-      }
-      stateBox.classList.add("hidden");
-
-      list.forEach(v => grid.appendChild(card(v)));
+      });
     }
 
-    function card(v) {
-      const wrap = document.createElement("article");
-      wrap.className = "card bg-white overflow-hidden flex flex-col";
-      wrap.setAttribute("data-vid", v.id);
+    function orderRow(id, o){
+      const fee = Number(o.deliveryFee || 0);
+      const items = Number(o.totalPrice || 0);
+      const grand = Number(o.grandTotal ?? (items + fee));
+      const canCancel = !["ready","cancelled"].includes(o.status) && !o.orderConfirmed;
 
-      const imgUrl = getVendorImageSync(v) || FALLBACK;
+      const el = document.createElement("div");
+      el.className = "p-4 flex gap-3";
 
-      wrap.innerHTML = `
-        <div class="img-wrap">
-          <img src="${imgUrl}" alt="${escapeHTML(v.shopName || "Shop image")}"
-               class="heroimg w-full h-40 object-cover ${imgUrl ? "" : "skeleton"}" />
+      el.innerHTML = `
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-3">
+            <div class="truncate font-medium text-slate-800">${esc(o.serviceName || "Service")}</div>
+            ${statusBadgeHTML(o)}
+          </div>
+          <div class="text-xs text-gray-600 mt-1">
+            ${o.qty || 1} copies · ${o.pages || 1} pages · ${esc(o.size || "")} · ${esc(o.sides || "")}
+          </div>
+          <div class="text-xs text-gray-500 mt-0.5">
+            Payment: ${esc(o.paymentMethod || "-")} · Fulfillment: ${esc(o.fulfillmentMethod || "pickup")}
+          </div>
+          ${o.vendorGcashQrUrl && o.paymentMethod === "gcash" ? `
+            <div class="mt-2 flex items-center gap-2">
+              <img src="${o.vendorGcashQrUrl}" alt="GCash QR" class="w-14 h-14 object-contain rounded-md border bg-white">
+              <span class="text-xs text-gray-600">Scan to pay (if not yet paid)</span>
+            </div>` : ``}
         </div>
-        <div class="p-4 flex-1 flex flex-col gap-2">
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-slate-800 leading-tight">${escapeHTML(v.shopName || "Unnamed Shop")}</h3>
-            <div class="flex items-center gap-1 text-sm">
-              <span class="star">★</span><span class="text-gray-700">${typeof v.rating === "number" ? v.rating.toFixed(1) : (v.rating || "4.6")}</span>
-            </div>
+        <div class="shrink-0 text-right">
+          <div class="text-sm text-gray-500">Items: ₱${items.toLocaleString()}</div>
+          <div class="text-sm text-gray-500">Delivery: ₱${fee.toLocaleString()}</div>
+          <div class="text-[15px] font-semibold text-sky-700">Total: ₱${grand.toLocaleString()}</div>
+          <div class="mt-2 flex gap-2 justify-end">
+            <button class="btn border border-gray-300 hover:bg-gray-50 text-gray-700" data-act="delete">Delete</button>
+            <button class="btn ${canCancel?'bg-red-600 hover:bg-red-700 text-white':'bg-gray-200 text-gray-500 cursor-not-allowed'}" data-act="cancel" ${canCancel?'':'disabled'}>Cancel</button>
           </div>
-
-          <p class="text-sm text-gray-600 truncate-2">${escapeHTML(v.description || v.about || "Professional printing services with quick turnaround.")}</p>
-
-          <div class="mt-1 flex items-center justify-between text-xs">
-            <div class="flex items-center gap-4 text-gray-500">
-              <span>📍 ${v.address ? escapeHTML(v.address) : "Address not provided"}</span>
-            </div>
-            <span class="badge ${v.isOpen===false ? 'text-red-500' : 'text-emerald-600'}">
-              ${v.isOpen===false ? (v.closesAt ? `Closes at ${escapeHTML(v.closesAt)}` : 'Closed') : (v.closesAt ? `Open · Closes at ${escapeHTML(v.closesAt)}` : 'Open now')}
-            </span>
-          </div>
-
-          <button class="mt-3 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-md font-medium"
-                  onclick="window.location.href='shop.html?id=${v.id}'">View Store</button>
         </div>
       `;
-      return wrap;
+
+      // actions
+      el.querySelector("[data-act='cancel']").addEventListener("click", async ()=>{
+        if (!canCancel) return;
+        if (!confirm("Cancel this order?")) return;
+
+        try{
+          const vendorId = o.vendorId;
+          const vendorOrderId = o.vendorOrderId || id; // saved when creating the order
+          const batch = writeBatch(db);
+
+          if (vendorId && vendorOrderId){
+            const vref = doc(db, "vendors", vendorId, "orders", vendorOrderId);
+            batch.set(vref, { status: "cancelled", cancelBy: "customer" }, { merge: true });
+          }
+          const uref = doc(db, "users", currentUser.uid, "orders", id);
+          batch.set(uref, { status: "cancelled", cancelBy: "customer" }, { merge: true });
+
+          await batch.commit();
+          alert("Order cancelled.");
+        }catch(err){
+          console.error(err);
+          alert("Failed to cancel: " + (err?.message || err));
+        }
+      });
+
+      el.querySelector("[data-act='delete']").addEventListener("click", async ()=>{
+        if (!confirm("Delete this order from your list? (This does not delete it from the shop.)")) return;
+        try{
+          await deleteDoc(doc(db, "users", currentUser.uid, "orders", id));
+          // stream auto refreshes
+        }catch(err){
+          console.error(err);
+          alert("Failed to delete: " + (err?.message || err));
+        }
+      });
+
+      return el;
     }
 
-    function escapeHTML(s){
-      return String(s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+    function statusBadgeHTML(o){
+      let cls = "bg-slate-100 text-slate-700", label = "Pending";
+      if (o.status === "cancelled"){ cls = "bg-gray-200 text-gray-600"; label = "Cancelled"; }
+      else if (o.status === "ready") { cls = "bg-emerald-100 text-emerald-700"; label = "Ready"; }
+      else if (o.orderConfirmed) { cls = "bg-blue-100 text-blue-700"; label = "Confirmed"; }
+      else if (o.paymentConfirmed) { cls = "bg-amber-100 text-amber-700"; label = "Paid"; }
+      return `<span class="badge ${cls}">${label}</span>`;
     }
   </script>
 </body>
