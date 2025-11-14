@@ -1,183 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Print-IT · Vendor Dashboard</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet"/>
+
   <style>
-    body{background:#f8fafc;font-family:Inter,system-ui,Arial}
-    .card{background:#fff;border-radius:1rem;box-shadow:0 8px 22px rgba(15,23,42,.06)}
-    .stat{border-radius:.875rem;border:1px solid rgba(2,6,23,.06);background:#fff}
-    .sidebar-link{display:flex;align-items:center;gap:.6rem;padding:.65rem .9rem;border-radius:.65rem;color:#334155}
-    .sidebar-link.active{background:#e8f1ff;color:#1d4ed8;font-weight:600}
-    .dnd{border:2px dashed #cbd5e1;border-radius:.75rem;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;color:#64748b;cursor:pointer}
-    .img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
-    .pill{font-size:.72rem;border-radius:999px;padding:.15rem .5rem}
+    .material-symbols-rounded{font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 24;font-size:1.05rem;line-height:1}
+    body{background:#f3f6fb;font-family:Inter,system-ui,Arial}
+    .container{max-width:1200px}
+
+    /* Sidebar */
+    .nav-btn{display:flex;width:100%;gap:.6rem;align-items:center;padding:.55rem .75rem;border-radius:.65rem;color:#334155}
+    .nav-btn:hover{background:#f1f5f9}
+    .nav-btn.active{background:#e0f2fe;color:#0369a1;font-weight:600}
+
+    /* Cards */
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 8px 22px rgba(15,23,42,.06)}
+
+    /* Chats */
+    .chat-list-item{border-radius:.75rem;padding:.55rem .6rem;display:flex;gap:.6rem;align-items:center;width:100%;text-align:left}
+    .chat-list-item.active{background:#eef6ff;border:1px solid #cfe5ff}
+    .chat-scroll{height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:.5rem;padding-right:.25rem}
+    .msg{max-width:78%;padding:.55rem .7rem;border-radius:12px;font-size:.92rem;line-height:1.25rem}
+    .msg.me{align-self:flex-end;background:#0ea5e9;color:#fff;border-bottom-right-radius:6px}
+    .msg.them{align-self:flex-start;background:#f1f5f9;color:#0f172a;border-bottom-left-radius:6px}
+    .msg-time{font-size:.68rem;color:#94a3b8;margin-top:2px}
+
+    .badge{font-size:.72rem;border-radius:999px;padding:.15rem .5rem}
+    .table{width:100%}
+    .table th,.table td{padding:.6rem .5rem}
   </style>
 </head>
 <body class="min-h-screen">
 
-  <div class="flex">
+  <div class="min-h-screen grid grid-cols-[240px_1fr]">
     <!-- Sidebar -->
-    <aside class="w-64 min-h-screen border-r bg-white px-4 py-5 hidden md:block">
-      <div class="flex items-center gap-2 mb-6 px-2">
-        <img src="logo-placeholder.png" class="w-9 h-9 rounded-md bg-gray-100 object-cover" alt="logo"/>
-        <div>
-          <p class="text-sky-600 font-semibold leading-4">Print-IT</p>
-          <p class="text-xs text-gray-400">Vendor Dashboard</p>
+    <aside class="bg-white border-r border-gray-200 hidden md:flex md:flex-col">
+      <a href="#" class="px-4 py-4 flex items-center gap-2 border-b border-gray-100">
+        <img src="logo-placeholder.png" alt="Print-IT" class="w-7 h-7 rounded-md object-contain">
+        <div class="min-w-0">
+          <div class="text-sm font-semibold text-gray-900">Print-IT</div>
+          <div class="text-[11px] text-gray-500">Vendor Dashboard</div>
         </div>
-      </div>
-      <nav class="space-y-1">
-        <button data-tab="tab-dashboard" class="sidebar-link active">📊 Dashboard</button>
-        <button data-tab="tab-services"  class="sidebar-link">🧾 Services</button>
-        <button data-tab="tab-orders"    class="sidebar-link">📦 Orders</button>
-        <button data-tab="tab-settings"  class="sidebar-link">⚙️ Settings</button>
+      </a>
+
+      <nav id="sideNav" class="p-3 space-y-1 text-sm">
+        <button data-target="dashboard" class="nav-btn active"><span class="material-symbols-rounded">dashboard</span>Dashboard</button>
+        <button data-target="services"  class="nav-btn"><span class="material-symbols-rounded">design_services</span>Services</button>
+        <button data-target="orders"    class="nav-btn"><span class="material-symbols-rounded">receipt_long</span>Orders</button>
+        <button data-target="chats"     class="nav-btn"><span class="material-symbols-rounded">chat</span>Chats</button>
+        <button data-target="settings"  class="nav-btn"><span class="material-symbols-rounded">settings</span>Settings</button>
+
+        <button id="logoutBtn" class="mt-4 flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50">
+          <span class="material-symbols-rounded">logout</span>Logout
+        </button>
       </nav>
-      <button id="logoutBtn" class="mt-8 sidebar-link text-red-600 hover:bg-red-50">🚪 Logout</button>
     </aside>
 
     <!-- Main -->
     <main class="flex-1">
-      <!-- Top bar (mobile) -->
-      <header class="md:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <img src="logo-placeholder.png" class="w-8 h-8 rounded-md bg-gray-100" alt="logo"/>
-          <span class="text-sky-600 font-semibold">PrintHub Vendor</span>
+      <header class="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
+        <div class="container mx-auto px-5 py-3">
+          <h1 class="text-2xl font-semibold text-gray-900" id="pageTitle">Dashboard Overview</h1>
+          <p class="hidden sm:block text-sm text-gray-500" id="pageSub">Manage your printing services and track your business performance</p>
         </div>
-        <button id="logoutBtnMobile" class="text-sm text-red-600">Logout</button>
       </header>
 
-      <div class="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Dashboard Overview</h1>
-        <p class="text-gray-500 mb-6">Manage your printing services and track your business performance</p>
+      <div id="statusBar" class="container mx-auto px-5 hidden mt-4 text-sm"></div>
 
-        <!-- Overview stats -->
-        <section id="tab-dashboard" class="space-y-6">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="stat p-4">
-              <p class="text-gray-500 text-sm">Total Orders</p>
-              <p id="stat-total-orders" class="text-2xl font-bold mt-1">0</p>
+      <div class="container mx-auto px-5 py-6 space-y-6">
+        <!-- DASHBOARD -->
+        <section id="section-dashboard" class="section">
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div class="card p-4">
+              <div class="text-xs text-gray-500">Today’s Orders</div>
+              <div id="statToday" class="mt-2 text-2xl font-semibold text-gray-900">0</div>
             </div>
-            <div class="stat p-4">
-              <p class="text-gray-500 text-sm">Monthly Revenue</p>
-              <p id="stat-revenue" class="text-2xl font-bold mt-1">—</p>
-              <p class="text-xs text-gray-400 mt-1">Add prices to services & include price on orders to auto-compute.</p>
+            <div class="card p-4">
+              <div class="text-xs text-gray-500">Pending</div>
+              <div id="statPending" class="mt-2 text-2xl font-semibold text-gray-900">0</div>
             </div>
-            <div class="stat p-4">
-              <p class="text-gray-500 text-sm">Active Services</p>
-              <p id="stat-services" class="text-2xl font-bold mt-1">0</p>
+            <div class="card p-4">
+              <div class="text-xs text-gray-500">Services</div>
+              <div id="statServices" class="mt-2 text-2xl font-semibold text-gray-900">0</div>
             </div>
           </div>
+        </section>
 
-          <!-- Add New Service -->
+        <!-- SERVICES -->
+        <section id="section-services" class="section hidden">
           <div class="card p-5">
-            <h2 class="text-lg font-semibold text-slate-800 mb-3">Add New Service</h2>
-            <form id="serviceForm" class="grid md:grid-cols-12 gap-4">
-              <div class="md:col-span-7">
-                <label class="block text-sm text-gray-600 mb-1">Service Name</label>
-                <input id="svc-name" class="w-full border rounded-lg px-3 py-2" placeholder="Enter service name" required>
-              </div>
-              <div class="md:col-span-5">
-                <label class="block text-sm text-gray-600 mb-1">Price per unit</label>
-                <input id="svc-price" type="number" min="0" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="0.00">
-              </div>
-              <div class="md:col-span-12">
-                <label class="block text-sm text-gray-600 mb-1">Description</label>
-                <textarea id="svc-desc" rows="3" class="w-full border rounded-lg px-3 py-2" placeholder="Describe your service"></textarea>
-              </div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-slate-800">Services</h3>
+              <button id="addServiceBtn" class="bg-sky-600 hover:bg-sky-700 text-white rounded-md px-3 py-2 text-sm inline-flex items-center gap-1">
+                <span class="material-symbols-rounded">add</span> Add Service
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="table text-sm">
+                <thead class="text-left text-gray-500">
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price / page</th>
+                    <th>Availability</th>
+                    <th>Description</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="servicesTbody" class="align-top"></tbody>
+              </table>
+            </div>
+            <p id="servicesEmpty" class="text-sm text-gray-500 text-center py-8 hidden">No services yet. Click “Add Service”.</p>
+          </div>
+        </section>
 
-              <div class="md:col-span-8">
-                <label class="block text-sm text-gray-600 mb-1">Service Image</label>
-                <div id="dropZone" class="dnd rounded-lg">
+        <!-- ORDERS -->
+        <section id="section-orders" class="section hidden">
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-slate-800">Orders</h3>
+            </div>
+            <div id="ordersList" class="divide-y"></div>
+            <p id="ordersEmpty" class="text-sm text-gray-500 text-center py-8 hidden">No orders yet.</p>
+          </div>
+        </section>
+
+        <!-- CHATS -->
+        <section id="section-chats" class="section hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- Thread list -->
+            <aside class="card p-4">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="font-semibold text-slate-800">Conversations</h3>
+                <span id="threadCount" class="text-xs text-gray-500">0</span>
+              </div>
+              <div class="relative mb-3">
+                <input id="chatSearch" class="w-full border rounded-lg px-3 py-2 text-sm pl-9" placeholder="Search by customer or last message...">
+                <span class="material-symbols-rounded absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+              </div>
+              <div id="chatList" class="space-y-1 max-h-[70vh] overflow-y-auto pr-1"></div>
+              <div id="chatListEmpty" class="text-sm text-gray-500 text-center py-8 hidden">No conversations yet.</div>
+            </aside>
+
+            <!-- Message view -->
+            <section class="lg:col-span-2 card flex flex-col">
+              <div id="chatHead" class="px-4 py-3 border-b flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-9 h-9 rounded-lg bg-sky-100 text-sky-700 grid place-items-center">
+                    <span class="material-symbols-rounded">person</span>
+                  </div>
                   <div>
-                    <div class="text-3xl mb-2">🖼️</div>
-                    <p class="text-sm">Click to upload or drag & drop</p>
-                    <p class="text-xs text-gray-400">PNG, JPG up to 10MB</p>
+                    <div id="chatWith" class="font-semibold text-slate-800">Select a conversation</div>
+                    <div id="chatMeta" class="text-xs text-gray-500"></div>
                   </div>
                 </div>
-                <input id="fileInput" type="file" accept="image/*" class="hidden">
-                <p id="fileName" class="text-xs text-gray-500 mt-2"></p>
+                <button id="closeThread" class="hidden text-gray-500 hover:text-gray-800 lg:hidden">
+                  <span class="material-symbols-rounded">close</span>
+                </button>
               </div>
 
-              <div class="md:col-span-4 flex items-end">
-                <button class="w-full bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-lg font-semibold">Print-IT</button>
-              </div>
-            </form>
-          </div>
+              <div id="chatMessages" class="chat-scroll px-3"></div>
 
-          <!-- Current Services -->
-          <div class="card p-5">
-            <h2 class="text-lg font-semibold text-slate-800 mb-4">Current Services</h2>
-            <div id="servicesGrid" class="img-grid"></div>
-            <p id="servicesEmpty" class="text-sm text-gray-500 text-center py-10 hidden">No services added yet.</p>
-          </div>
-        </section>
-
-        <!-- Services Tab -->
-        <section id="tab-services" class="hidden space-y-4">
-          <div class="card p-5">
-            <h2 class="text-lg font-semibold text-slate-800 mb-4">Your Services</h2>
-            <div id="servicesGrid2" class="img-grid"></div>
-            <p id="servicesEmpty2" class="text-sm text-gray-500 text-center py-10 hidden">No services yet.</p>
+              <form id="chatForm" class="px-3 py-3 border-t flex items-center gap-2">
+                <input id="chatInput" class="flex-1 border rounded-md px-3 py-2 text-sm" placeholder="Type a message…" disabled />
+                <button id="chatSendBtn" class="bg-sky-600 hover:bg-sky-700 text-white rounded-md px-3 py-2 text-sm inline-flex items-center gap-1" type="submit" disabled>
+                  <span class="material-symbols-rounded">send</span> Send
+                </button>
+              </form>
+            </section>
           </div>
         </section>
 
-        <!-- Orders Tab -->
-        <section id="tab-orders" class="hidden space-y-4">
+        <!-- SETTINGS -->
+        <section id="section-settings" class="section hidden">
           <div class="card p-5">
-            <h2 class="text-lg font-semibold text-slate-800 mb-4">Incoming Orders</h2>
-            <div id="ordersList" class="space-y-3"></div>
-            <p id="ordersEmpty" class="text-sm text-gray-500 text-center py-10 hidden">No orders yet.</p>
+            <h3 class="font-semibold text-slate-800 mb-2">Settings</h3>
+            <p class="text-sm text-gray-500">Your existing settings UI goes here.</p>
           </div>
         </section>
-
-        <!-- Settings Tab -->
-        <section id="tab-settings" class="hidden space-y-4">
-          <div class="card p-5">
-            <h2 class="text-lg font-semibold text-slate-800 mb-4">Shop Information</h2>
-            <div class="grid md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm text-gray-700 mb-1">Shop</label>
-                <input id="set-shop" class="w-full border rounded-lg px-3 py-2">
-              </div>
-              <div>
-                <label class="block text-sm text-gray-700 mb-1">Owner</label>
-                <input id="set-owner" class="w-full border rounded-lg px-3 py-2">
-              </div>
-              <div>
-                <label class="block text-sm text-gray-700 mb-1">Email</label>
-                <input id="set-email" class="w-full border rounded-lg px-3 py-2" disabled>
-              </div>
-              <div>
-                <label class="block text-sm text-gray-700 mb-1">Address</label>
-                <input id="set-address" class="w-full border rounded-lg px-3 py-2">
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm text-gray-700 mb-1">Google Maps link (pickup point)</label>
-                <input id="set-map" class="w-full border rounded-lg px-3 py-2" placeholder="https://maps.app.goo.gl/...">
-                <p class="text-xs text-gray-500 mt-1">Customers will see a “📍 Open in Google Maps” link on your shop page.</p>
-              </div>
-              <div class="md:col-span-2">
-                <button id="saveSettings" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg">Save</button>
-                <span id="setSaved" class="text-xs text-green-600 ml-3 hidden">Saved.</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
       </div>
     </main>
   </div>
 
-  <!-- Firebase + Cloudinary Logic -->
+  <!-- ADD/EDIT SERVICE MODAL -->
+  <div id="serviceModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl w-[92vw] max-w-lg">
+      <div class="px-5 pt-4 pb-3 border-b flex items-center justify-between">
+        <h3 id="serviceModalTitle" class="text-base font-semibold">Add Service</h3>
+        <button id="serviceModalClose" class="text-gray-500 hover:text-gray-800">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <form id="serviceForm" class="px-5 py-4 space-y-3">
+        <input type="hidden" id="serviceId"/>
+        <div>
+          <label class="text-xs text-gray-600">Service name</label>
+          <input id="serviceName" class="w-full border rounded-md p-2 text-sm" required />
+        </div>
+        <div>
+          <label class="text-xs text-gray-600">Price per page (₱)</label>
+          <input id="servicePrice" type="number" min="0" step="0.01" class="w-full border rounded-md p-2 text-sm" required />
+        </div>
+        <div>
+          <label class="text-xs text-gray-600">Image URL</label>
+          <input id="serviceImage" class="w-full border rounded-md p-2 text-sm" placeholder="https://..."/>
+        </div>
+        <div>
+          <label class="text-xs text-gray-600">Description</label>
+          <textarea id="serviceDesc" class="w-full border rounded-md p-2 text-sm" rows="3"></textarea>
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="serviceAvail" type="checkbox" class="scale-110">
+          <label for="serviceAvail" class="text-sm text-gray-700">Available</label>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="serviceCancel" class="w-1/2 border border-gray-300 text-gray-700 py-2 rounded-md font-semibold hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="w-1/2 bg-sky-600 text-white py-2 rounded-md font-semibold hover:bg-sky-700">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase + App -->
   <script type="module">
-    /* ---------- Firebase ---------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, updateDoc, setDoc,
-      collection, addDoc, onSnapshot, deleteDoc, query, orderBy
+      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+      collection, query, orderBy, onSnapshot, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import { firebaseConfig } from "./firebase-config.js";
 
@@ -185,241 +243,375 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let VENDOR_ID = null;
+    const statusBar = document.getElementById("statusBar");
+    function setStatus(msg, type="info"){
+      if (!msg){ statusBar.className="container mx-auto px-5 hidden mt-4 text-sm"; statusBar.textContent=""; return; }
+      const base="container mx-auto px-5 mt-4 text-sm px-3 py-2 rounded-lg";
+      const pal = type==="error" ? "bg-red-50 border border-red-200 text-red-700"
+                                 : "bg-blue-50 border border-blue-200 text-blue-700";
+      statusBar.className = `${base} ${pal}`;
+      statusBar.textContent = msg;
+    }
 
-    /* ---------- Cloudinary (UNSIGNED) ---------- */
-    // 1) Create an unsigned upload preset in Cloudinary console (Settings → Upload)
-    // 2) Set your cloud name and preset here:
-    const CLOUDINARY_CLOUD_NAME = "dnzsngooc";
-    const CLOUDINARY_UPLOAD_PRESET = "printit_unsigned"; // change to your preset name
-    const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-
-    /* ---------- Sidebar tabs ---------- */
-    const tabButtons = document.querySelectorAll("aside .sidebar-link[data-tab]");
-    const sections = ["tab-dashboard","tab-services","tab-orders","tab-settings"].map(id=>document.getElementById(id));
-    tabButtons.forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        tabButtons.forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active");
-        const id = btn.dataset.tab;
-        sections.forEach(s=>s.classList.toggle("hidden", s.id !== id));
+    /* ---------------- Tabs + Nav ---------------- */
+    const sections = {
+      dashboard: document.getElementById("section-dashboard"),
+      services:  document.getElementById("section-services"),
+      orders:    document.getElementById("section-orders"),
+      chats:     document.getElementById("section-chats"),
+      settings:  document.getElementById("section-settings"),
+    };
+    const sideNav = document.getElementById("sideNav");
+    sideNav.querySelectorAll("[data-target]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const t = btn.dataset.target;
+        sideNav.querySelectorAll("[data-target]").forEach(b=> b.classList.toggle("active", b===btn));
+        Object.entries(sections).forEach(([k,el])=> el.classList.toggle("hidden", k!==t));
+        const titles = { dashboard:"Dashboard Overview", services:"Manage Services", orders:"Orders", chats:"Chats", settings:"Settings" };
+        document.getElementById("pageTitle").textContent = titles[t] || "Vendor Dashboard";
+        document.getElementById("pageSub").textContent = t==="chats"
+          ? "Chat with customers in real time"
+          : "Manage your printing services and track your business performance";
+        history.replaceState(null, "", "#"+t);
+        if (t==="chats") attachThreads(); // lazy-start chat stream
       });
     });
+    const initial = (location.hash||"#dashboard").slice(1);
+    (sideNav.querySelector(`[data-target="${initial}"]`) || sideNav.querySelector('[data-target="dashboard"]')).click();
 
-    /* ---------- Logout ---------- */
-    const doLogout = async ()=>{ await signOut(auth); window.location.href="auth.html"; };
-    document.getElementById("logoutBtn").addEventListener("click", doLogout);
-    document.getElementById("logoutBtnMobile").addEventListener("click", doLogout);
-
-    /* ---------- Auth Guard ---------- */
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = "vendor-login.html"; return; }
-      const vSnap = await getDoc(doc(db,"vendors",user.uid));
-      if (!vSnap.exists()) { window.location.href = "home.html"; return; }
-      VENDOR_ID = user.uid;
-
-      loadSettings();
-      listenServices();
-      listenOrders();
+    /* ---------------- Auth ---------------- */
+    let vendor = null;
+    onAuthStateChanged(auth, async (user)=>{
+      if (!user){ window.location.href = "auth.html"; return; }
+      vendor = user;
+      const vRef = doc(db, "vendors", vendor.uid);
+      const vSnap = await getDoc(vRef);
+      if (!vSnap.exists()) await setDoc(vRef, { uid: vendor.uid, email: vendor.email || null }, { merge: true });
+      attachServices();
+      attachOrders();
     });
 
-    /* ---------- SETTINGS ---------- */
-    async function loadSettings(){
-      const uSnap = await getDoc(doc(db,"users",VENDOR_ID));
-      if (uSnap.exists()){
-        const u=uSnap.data();
-        setVal("set-shop", u.shopName||"");
-        setVal("set-owner", u.ownerName||u.fullName||"");
-        setVal("set-email", u.email||"");
-        setVal("set-address", u.address||"");
+    document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+      await signOut(auth);
+      window.location.href = "auth.html";
+    });
+
+    /* ---------------- Services (CRUD) ---------------- */
+    const servicesTbody = document.getElementById("servicesTbody");
+    const servicesEmpty = document.getElementById("servicesEmpty");
+    const addServiceBtn = document.getElementById("addServiceBtn");
+
+    const serviceModal = document.getElementById("serviceModal");
+    const serviceModalTitle = document.getElementById("serviceModalTitle");
+    const serviceModalClose = document.getElementById("serviceModalClose");
+    const serviceForm = document.getElementById("serviceForm");
+    const serviceCancel = document.getElementById("serviceCancel");
+
+    const fId = document.getElementById("serviceId");
+    const fName = document.getElementById("serviceName");
+    const fPrice = document.getElementById("servicePrice");
+    const fImage = document.getElementById("serviceImage");
+    const fDesc = document.getElementById("serviceDesc");
+    const fAvail = document.getElementById("serviceAvail");
+
+    function openServiceModal(mode, data){
+      serviceModalTitle.textContent = mode === "edit" ? "Edit Service" : "Add Service";
+      if (mode === "edit" && data){
+        fId.value = data.id;
+        fName.value = data.serviceName || "";
+        fPrice.value = Number(data.servicePrice||0);
+        fImage.value = data.imageUrl || "";
+        fDesc.value  = data.serviceDescription || "";
+        fAvail.checked = data.available !== false;
+      }else{
+        fId.value=""; fName.value=""; fPrice.value=""; fImage.value=""; fDesc.value=""; fAvail.checked=true;
       }
-      const vSnap = await getDoc(doc(db,"vendors",VENDOR_ID));
-      if (vSnap.exists()){
-        const v=vSnap.data();
-        setVal("set-map", v.mapLink||"");
-      }
-      // set revenue placeholder (compute later if you add price fields to orders)
-      document.getElementById("stat-revenue").textContent = "—";
+      serviceModal.classList.remove("hidden"); serviceModal.classList.add("flex");
     }
-    function setVal(id,val){ const el=document.getElementById(id); if(el) el.value = val||""; }
-    function getVal(id){ const el=document.getElementById(id); return el?el.value.trim():""; }
+    function closeServiceModal(){ serviceModal.classList.add("hidden"); serviceModal.classList.remove("flex"); }
+    serviceModalClose.onclick = serviceCancel.onclick = closeServiceModal;
+    serviceModal.addEventListener("click",(e)=>{ if (e.target===serviceModal) closeServiceModal(); });
+    addServiceBtn.addEventListener("click", ()=> openServiceModal("add"));
 
-    document.getElementById("saveSettings").addEventListener("click", async ()=>{
-      const shopName=getVal("set-shop"), ownerName=getVal("set-owner"),
-            email=getVal("set-email"), address=getVal("set-address"), map=getVal("set-map");
-      await updateDoc(doc(db,"users",VENDOR_ID), { shopName, ownerName, email, address });
-      await updateDoc(doc(db,"vendors",VENDOR_ID), { mapLink: map, shopName, ownerName, address, email });
-      const tag=document.getElementById("setSaved"); tag.classList.remove("hidden"); setTimeout(()=>tag.classList.add("hidden"),1500);
-    });
-
-    /* ---------- ADD SERVICE + CLOUDINARY UPLOAD ---------- */
-    const dropZone = document.getElementById("dropZone");
-    const fileInput = document.getElementById("fileInput");
-    const fileName = document.getElementById("fileName");
-    let fileBlob = null;
-
-    dropZone.addEventListener("click", ()=> fileInput.click());
-    dropZone.addEventListener("dragover", e=>{ e.preventDefault(); dropZone.style.background="#f8fafc"; });
-    dropZone.addEventListener("dragleave", ()=> dropZone.style.background="" );
-    dropZone.addEventListener("drop", e=>{
-      e.preventDefault(); dropZone.style.background="";
-      if(e.dataTransfer.files && e.dataTransfer.files[0]) { setFile(e.dataTransfer.files[0]); }
-    });
-    fileInput.addEventListener("change", (e)=>{ if(e.target.files[0]) setFile(e.target.files[0]); });
-
-    function setFile(f){
-      if(!f.type.startsWith("image/")) return alert("Please select an image file.");
-      if(f.size>10*1024*1024) return alert("Max 10MB.");
-      fileBlob = f; fileName.textContent = f.name;
+    function serviceRow(id, d){
+      const tr = document.createElement("tr");
+      const img = d.imageUrl || "https://via.placeholder.com/64x40?text=IMG";
+      const avail = d.available !== false;
+      tr.innerHTML = `
+        <td><img src="${img}" class="w-16 h-10 object-cover rounded-md border bg-white"></td>
+        <td class="font-medium text-slate-800">${escapeHTML(d.serviceName||"Service")}</td>
+        <td>₱${Number(d.servicePrice||0).toLocaleString()}</td>
+        <td>
+          <label class="inline-flex items-center gap-2 text-sm">
+            <input type="checkbox" ${avail?"checked":""} data-act="toggle" class="scale-110">
+            <span>${avail?"Available":"Unavailable"}</span>
+          </label>
+        </td>
+        <td class="text-gray-600 max-w-[360px]">${escapeHTML(d.serviceDescription||"—")}</td>
+        <td class="text-right">
+          <button class="px-2 py-1 rounded-md border text-gray-700 hover:bg-gray-50" data-act="edit">Edit</button>
+          <button class="ml-2 px-2 py-1 rounded-md border border-red-300 text-red-600 hover:bg-red-50" data-act="delete">Delete</button>
+        </td>
+      `;
+      tr.querySelector('[data-act="edit"]').addEventListener("click", ()=> openServiceModal("edit", { id, ...d }));
+      tr.querySelector('[data-act="delete"]').addEventListener("click", async ()=>{
+        if (!confirm("Delete this service?")) return;
+        await deleteDoc(doc(db,"vendors",vendor.uid,"services",id));
+      });
+      tr.querySelector('[data-act="toggle"]').addEventListener("change", async (e)=>{
+        await updateDoc(doc(db,"vendors",vendor.uid,"services",id), { available: e.target.checked });
+      });
+      return tr;
     }
 
-    document.getElementById("serviceForm").addEventListener("submit", async (e)=>{
+    serviceForm.addEventListener("submit", async (e)=>{
       e.preventDefault();
-      const name = document.getElementById("svc-name").value.trim();
-      const desc = document.getElementById("svc-desc").value.trim();
-      const price = parseFloat(document.getElementById("svc-price").value || "0");
-      if(!name) return;
-
-      let imageUrl = "";
-      try {
-        if (fileBlob) {
-          const fd = new FormData();
-          fd.append("file", fileBlob);
-          fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-          fd.append("folder", "printit/services");
-          const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: fd });
-          if (!res.ok) throw new Error(`Cloudinary upload failed: ${res.status}`);
-          const data = await res.json();
-          imageUrl = data.secure_url;
+      const data = {
+        serviceName: fName.value.trim(),
+        servicePrice: Number(fPrice.value||0),
+        imageUrl: fImage.value.trim(),
+        serviceDescription: fDesc.value.trim(),
+        available: fAvail.checked,
+        updatedAt: serverTimestamp()
+      };
+      try{
+        if (fId.value){
+          await updateDoc(doc(db,"vendors",vendor.uid,"services",fId.value), data);
+        }else{
+          data.createdAt = serverTimestamp();
+          await addDoc(collection(db,"vendors",vendor.uid,"services"), data);
         }
-
-        await addDoc(collection(db,"vendors",VENDOR_ID,"services"), {
-          serviceName: name,
-          serviceDescription: desc,
-          servicePrice: price,
-          imageUrl,
-          createdAt: new Date().toISOString()
-        });
-
-        e.target.reset();
-        fileBlob=null; fileName.textContent="";
-        alert("Service added");
-      } catch (err) {
-        console.error(err);
-        alert(err.message || "Upload failed");
+        closeServiceModal();
+      }catch(err){
+        console.error(err); setStatus(err?.message||"Failed to save service","error");
       }
     });
 
-    /* ---------- SERVICES LISTENERS ---------- */
-    function listenServices(){
-      onSnapshot(collection(db,"vendors",VENDOR_ID,"services"), (snap)=>{
-        const a=document.getElementById("servicesGrid");
-        const b=document.getElementById("servicesGrid2");
-        const emA=document.getElementById("servicesEmpty");
-        const emB=document.getElementById("servicesEmpty2");
-        a.innerHTML=""; b.innerHTML="";
-        const count = snap.size;
-        document.getElementById("stat-services").textContent = String(count);
-
-        if(count===0){ emA.classList.remove("hidden"); emB.classList.remove("hidden"); return; }
-        emA.classList.add("hidden"); emB.classList.add("hidden");
-
-        snap.forEach(s=>{
-          const d=s.data();
-          const card=serviceCard(s.id,d);
-          a.appendChild(card.cloneNode(true));
-          b.appendChild(card);
+    function attachServices(){
+      if (!vendor) return;
+      const qy = query(collection(db,"vendors",vendor.uid,"services"), orderBy("createdAt","desc"));
+      onSnapshot(qy,(snap)=>{
+        servicesTbody.innerHTML="";
+        if (snap.empty){ servicesEmpty.classList.remove("hidden"); return; }
+        servicesEmpty.classList.add("hidden");
+        let count = 0;
+        snap.forEach(d=>{
+          servicesTbody.appendChild(serviceRow(d.id,d.data()));
+          count++;
         });
+        document.getElementById("statServices").textContent = count;
       });
     }
 
-    function serviceCard(id,d){
-      const wrap=document.createElement("div");
-      wrap.className="border bg-white rounded-xl overflow-hidden";
-      const img = d.imageUrl || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1200&auto=format&fit=crop";
+    /* ---------------- Orders ---------------- */
+    const ordersList = document.getElementById("ordersList");
+    const ordersEmpty = document.getElementById("ordersEmpty");
+
+    function orderRow(id, o){
+      const wrap = document.createElement("div");
+      const statusBadge = (o)=>{
+        if (o.status==="ready") return `<span class="badge bg-emerald-100 text-emerald-700">Ready</span>`;
+        if (o.status==="cancelled") return `<span class="badge bg-gray-200 text-gray-600">Cancelled</span>`;
+        if (o.orderConfirmed) return `<span class="badge bg-blue-100 text-blue-700">Confirmed</span>`;
+        return `<span class="badge bg-slate-100 text-slate-700">Pending</span>`;
+      };
+      wrap.className = "py-3 flex items-start gap-3";
       wrap.innerHTML = `
-        <img src="${img}" class="w-full h-36 object-cover" alt="">
-        <div class="p-4">
-          <h3 class="font-semibold text-slate-800">${escapeHtml(d.serviceName||"Service")}</h3>
-          <p class="text-sm text-gray-600 mt-1">${escapeHtml(d.serviceDescription||"")}</p>
-          <div class="flex items-center justify-between mt-3">
-            <span class="text-sky-600 font-medium">₱${(d.servicePrice||0).toLocaleString()}</span>
-            <button data-id="${id}" class="delSvc text-red-600 hover:bg-red-50 px-3 py-1 rounded-md text-sm">Delete</button>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <div class="font-semibold text-slate-800 truncate">${escapeHTML(o.serviceName||"Service")}</div>
+            ${statusBadge(o)}
           </div>
-        </div>`;
-      setTimeout(()=>{
-        wrap.querySelector(".delSvc").addEventListener("click", async (ev)=>{
-          if(!confirm("Delete this service?")) return;
-          await deleteDoc(doc(db,"vendors",VENDOR_ID,"services", ev.target.dataset.id));
-        });
-      });
+          <div class="text-xs text-gray-600 mt-1">
+            ${o.qty||1} copies · ${o.pages||1} pages · ${escapeHTML(o.size||"")} · ${escapeHTML(o.sides||"")}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">
+            By: ${escapeHTML(o.customerName||"")} — ${escapeHTML(o.customerContact||"")}
+          </div>
+        </div>
+        <div class="shrink-0 text-right">
+          <div class="text-sm text-gray-500">Items: ₱${Number(o.totalPrice||0).toLocaleString()}</div>
+          <div class="text-sm text-gray-500">Delivery: ₱${Number(o.deliveryFee||0).toLocaleString()}</div>
+          <div class="text-[15px] font-semibold text-sky-700">Total: ₱${Number(o.grandTotal||0).toLocaleString()}</div>
+          <div class="mt-2 flex gap-2 justify-end">
+            <button class="px-2 py-1 rounded-md border text-gray-700 hover:bg-gray-50" data-act="confirm">Confirm</button>
+            <button class="px-2 py-1 rounded-md border text-gray-700 hover:bg-gray-50" data-act="ready">Ready</button>
+            <button class="px-2 py-1 rounded-md border border-red-300 text-red-600 hover:bg-red-50" data-act="cancel">Cancel</button>
+          </div>
+        </div>
+      `;
+      wrap.querySelector('[data-act="confirm"]').addEventListener("click", ()=> updateDoc(doc(db,"vendors",vendor.uid,"orders",id),{ orderConfirmed:true, status:"pending" }));
+      wrap.querySelector('[data-act="ready"]').addEventListener("click",   ()=> updateDoc(doc(db,"vendors",vendor.uid,"orders",id),{ status:"ready" }));
+      wrap.querySelector('[data-act="cancel"]').addEventListener("click",  ()=> updateDoc(doc(db,"vendors",vendor.uid,"orders",id),{ status:"cancelled" }));
       return wrap;
     }
 
-    /* ---------- ORDERS ---------- */
-    function listenOrders(){
-      const qOrders = query(collection(db,"vendors",VENDOR_ID,"orders"), orderBy("createdAt","desc"));
-      onSnapshot(qOrders,(snap)=>{
-        const c=document.getElementById("ordersList");
-        const empty=document.getElementById("ordersEmpty");
-        c.innerHTML="";
-        document.getElementById("stat-total-orders").textContent = String(snap.size);
-
-        if (snap.empty){ empty.classList.remove("hidden"); return; }
-        empty.classList.add("hidden");
-
-        snap.forEach(oDoc=>{
-          const o = oDoc.data();
-          const status = o.status || "pending";
-          const date = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate().toLocaleString() : "";
-          const cls = status==="pending" ? "bg-yellow-100 text-yellow-700"
-                 : status==="accepted" ? "bg-blue-100 text-blue-700"
-                 : status==="completed" ? "bg-green-100 text-green-700"
-                 : status==="canceled" ? "bg-red-100 text-red-700"
-                 : "bg-gray-100 text-gray-700";
-
-          const el=document.createElement("div");
-          el.className="border rounded-xl bg-white p-4 flex justify-between gap-4";
-          el.innerHTML = `
-            <div class="text-sm">
-              <p class="text-gray-500">Service</p>
-              <p class="font-semibold text-slate-800">${escapeHtml(o.serviceName||"Service")}</p>
-              <p class="text-gray-500 mt-1">Customer: ${escapeHtml(o.customerName||"N/A")} (${escapeHtml(o.customerContact||"no contact")})</p>
-              <p class="text-gray-500 mt-1">Qty: ${o.qty||1}</p>
-              <span class="pill ${cls} inline-block mt-1">${status}</span>
-              ${date ? `<p class="text-xs text-gray-400 mt-1">${date}</p>` : ""}
-            </div>
-            <div class="flex flex-col items-end gap-2">
-              ${o.fileURL ? `<a href="${o.fileURL}" target="_blank" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm">Open file</a>` : `<span class="text-xs text-gray-400 italic">No file</span>`}
-              <div class="flex gap-2">
-                <button class="px-3 py-1 rounded-md text-sm bg-amber-500 text-white" data-act="accepted"  data-id="${oDoc.id}" data-cuid="${o.customerUid||""}">Accept</button>
-                <button class="px-3 py-1 rounded-md text-sm bg-green-600 text-white" data-act="completed" data-id="${oDoc.id}" data-cuid="${o.customerUid||""}">Complete</button>
-                <button class="px-3 py-1 rounded-md text-sm bg-red-500 text-white"   data-act="canceled"  data-id="${oDoc.id}" data-cuid="${o.customerUid||""}">Cancel</button>
-              </div>
-            </div>
-          `;
-          c.appendChild(el);
+    function attachOrders(){
+      if (!vendor) return;
+      const qy = query(collection(db,"vendors",vendor.uid,"orders"), orderBy("createdAt","desc"));
+      onSnapshot(qy,(snap)=>{
+        ordersList.innerHTML="";
+        if (snap.empty){ ordersEmpty.classList.remove("hidden"); return; }
+        ordersEmpty.classList.add("hidden");
+        let today = 0, pending = 0;
+        const now = new Date(); const ymd = now.toISOString().slice(0,10);
+        snap.forEach(d=>{
+          const o = d.data();
+          ordersList.appendChild(orderRow(d.id,o));
+          const created = o.createdAt?.toDate ? o.createdAt.toDate() : null;
+          if (created && created.toISOString().slice(0,10)===ymd) today++;
+          if (!o.orderConfirmed && o.status!=="ready" && o.status!=="cancelled") pending++;
         });
-
-        c.querySelectorAll("[data-act]").forEach(btn=>{
-          btn.addEventListener("click", ()=> setStatus(btn.dataset.id, btn.dataset.act, btn.dataset.cuid));
-        });
+        document.getElementById("statToday").textContent = today;
+        document.getElementById("statPending").textContent = pending;
       });
     }
 
-    async function setStatus(orderId, status, customerUid){
-      await updateDoc(doc(db,"vendors",VENDOR_ID,"orders",orderId), { status });
-      if (customerUid) {
-        try {
-          await updateDoc(doc(db,"users",customerUid,"orders",orderId), { status });
-        } catch (err) {
-          console.warn("could not update customer copy:", err.message);
-        }
-      }
+    /* ---------------- Chats ---------------- */
+    const chatList = document.getElementById("chatList");
+    const chatListEmpty = document.getElementById("chatListEmpty");
+    const chatSearch = document.getElementById("chatSearch");
+    const threadCount = document.getElementById("threadCount");
+    const chatWith = document.getElementById("chatWith");
+    const chatMeta = document.getElementById("chatMeta");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+
+    let threads = []; let filtered = [];
+    let activeChatId = null;
+    let unSubMsgs = null;
+    let unSubThreads = null;
+
+    function fmtTime(ts){
+      try{
+        const d = ts?.toDate ? ts.toDate() : new Date(ts?.seconds? ts.seconds*1000 : Date.now());
+        return d.toLocaleString();
+      }catch{ return ""; }
+    }
+    function escapeHTML(s){
+      return String(s||"").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+      }[m]));
+    }
+    function el(html){ const div=document.createElement("div"); div.innerHTML=html.trim(); return div.firstElementChild; }
+
+    function threadRow(t){
+      const d = t.data;
+      const name = d.userName || d.userEmail || d.userId || "Customer";
+      const last = d.lastMessage || "";
+      const time = fmtTime(d.updatedAt);
+      const row = el(`
+        <button class="chat-list-item ${t.id===activeChatId?'active':''}" data-id="${t.id}">
+          <div class="w-9 h-9 rounded-lg bg-sky-100 text-sky-700 grid place-items-center shrink-0">
+            <span class="material-symbols-rounded">person</span>
+          </div>
+          <div class="min-w-0">
+            <div class="text-sm font-semibold text-slate-800 truncate">${escapeHTML(name)}</div>
+            <div class="text-xs text-gray-500 truncate">${escapeHTML(last)}</div>
+          </div>
+          <div class="ml-auto text-[11px] text-gray-400 pl-2 shrink-0">${time}</div>
+        </button>
+      `);
+      row.addEventListener("click", ()=> openThread(t.id, d));
+      return row;
     }
 
-    /* ---------- Helpers ---------- */
-    function escapeHtml(s){ return String(s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m])); }
+    function renderThreads(list){
+      chatList.innerHTML = "";
+      list.forEach(t => chatList.appendChild(threadRow(t)));
+      chatListEmpty.classList.toggle("hidden", list.length>0);
+      threadCount.textContent = String(list.length);
+    }
+
+    function applyFilter(){
+      const q = chatSearch.value.trim().toLowerCase();
+      if (!q) filtered = threads.slice();
+      else filtered = threads.filter(t => {
+        const d = t.data;
+        const name = (d.userName || d.userEmail || d.userId || "").toLowerCase();
+        const last = (d.lastMessage || "").toLowerCase();
+        return name.includes(q) || last.includes(q);
+      });
+      renderThreads(filtered);
+    }
+    chatSearch.addEventListener("input", applyFilter);
+
+    function attachThreads(){
+      if (!vendor || unSubThreads) return;
+      const qy = query(collection(db, "vendors", vendor.uid, "chats"), orderBy("updatedAt","desc"));
+      unSubThreads = onSnapshot(qy, (snap)=>{
+        threads = [];
+        snap.forEach(d => threads.push({ id: d.id, data: d.data() }));
+        applyFilter();
+      });
+    }
+
+    function selectUI(name, meta){
+      chatWith.textContent = name || "Customer";
+      chatMeta.textContent = meta || "";
+      chatInput.disabled = false;
+      chatSendBtn.disabled = false;
+    }
+
+    function openThread(id, data){
+      activeChatId = id;
+      document.querySelectorAll(".chat-list-item").forEach(el => el.classList.toggle("active", el.dataset.id===id));
+      const title = data?.userName || data?.userEmail || data?.userId || "Customer";
+      selectUI(title, data?.userEmail ? `Email: ${data.userEmail}` : "");
+      attachMessagesStream(id);
+    }
+
+    function renderMessage(m){
+      const me = m.senderId === (vendor?.uid);
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `
+        <div class="msg ${me?'me':'them'}">${escapeHTML(m.text||'')}</div>
+        <div class="msg-time ${me?'text-right':''}">${fmtTime(m.createdAt)}</div>
+      `;
+      return wrap;
+    }
+
+    function scrollToBottom(){ chatMessages.scrollTop = chatMessages.scrollHeight; }
+
+    function attachMessagesStream(chatId){
+      if (unSubMsgs) { unSubMsgs(); unSubMsgs=null; }
+      const qy = query(collection(db, "vendors", vendor.uid, "chats", chatId, "messages"), orderBy("createdAt","asc"));
+      unSubMsgs = onSnapshot(qy, (snap)=>{
+        chatMessages.innerHTML = "";
+        snap.forEach(d => chatMessages.appendChild(renderMessage(d.data())));
+        scrollToBottom();
+      });
+    }
+
+    chatForm.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      if (!vendor || !activeChatId) return;
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      const parts = activeChatId.split("_");  // vendorId_userId
+      const userId = parts.slice(1).join("_") || null;
+
+      const msg = { text, senderId: vendor.uid, senderRole: "vendor", createdAt: serverTimestamp() };
+
+      try{
+        await addDoc(collection(db, "vendors", vendor.uid, "chats", activeChatId, "messages"), msg);
+        if (userId){
+          await addDoc(collection(db, "users", userId, "chats", activeChatId, "messages"), msg);
+          await setDoc(doc(db, "users", userId, "chats", activeChatId), { lastMessage: text, updatedAt: serverTimestamp() }, { merge: true });
+        }
+        await setDoc(doc(db, "vendors", vendor.uid, "chats", activeChatId), { lastMessage: text, updatedAt: serverTimestamp() }, { merge: true });
+
+        chatInput.value = "";
+        chatInput.focus();
+        scrollToBottom();
+      }catch(err){
+        console.error(err);
+        setStatus("Failed to send: " + (err?.message || err), "error");
+      }
+    });
   </script>
 </body>
 </html>
