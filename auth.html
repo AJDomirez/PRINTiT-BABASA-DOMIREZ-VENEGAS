@@ -3,217 +3,343 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Print-IT · Auth (fixed)</title>
+  <title>Print-IT · Auth</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet" />
   <style>
-    body{background:linear-gradient(135deg,#eef5ff,#f8fbff);font-family:Inter,system-ui,Arial}
-    .tab-btn.active{background:#1d4ed8;color:#fff}
+    .material-symbols-rounded {
+      font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+      font-size: 1.1rem;
+      line-height: 1;
+      vertical-align: middle;
+    }
+    body {
+      font-family: Inter, system-ui, Arial;
+    }
+    .tab-btn.active {
+      background: #1d4ed8;
+      color: #fff;
+    }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6">
 
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
-    <!-- Logo -->
-    <div class="flex flex-col items-center gap-1 mb-5">
-      <img src="logo-placeholder.png" alt="Logo" class="w-14 h-14 rounded-full bg-gray-100 object-cover shadow-sm" />
-      <h1 class="text-2xl font-extrabold text-sky-600">Print-IT</h1>
-      <p class="text-xs text-gray-500 text-center">Your trusted printing service platform</p>
+<body
+  class="min-h-screen flex items-center justify-center p-6 relative bg-cover bg-center"
+  style="background-image: url('https://www.hp.com/content/dam/sites/worldwide/printers/large-format/latex-printers/HP_Latex_printers-OG_image.jpg');"
+>
+  <!-- Blue overlay -->
+  <div class="absolute inset-0 bg-blue-900/40 backdrop-blur-[8px]"></div>
+
+  <!-- Auth card -->
+  <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 z-10">
+    <!-- Logo / Title -->
+    <div class="flex items-center gap-3 mb-4">
+      <img
+        src="logo-placeholder.png"
+        alt="Brand logo"
+        class="w-10 h-10 rounded-xl object-contain"
+      />
+      <div>
+        <h1 class="text-lg font-semibold text-gray-900">Welcome back</h1>
+        <p class="text-sm text-gray-500">
+          Sign in or create an account to continue
+        </p>
+      </div>
     </div>
 
     <!-- Tabs -->
-    <div class="flex gap-2 bg-slate-100 rounded-xl p-1 mb-5">
-      <button id="tab-signin" class="tab-btn active w-1/4 py-2 rounded-lg text-sm font-medium">Sign In</button>
-      <button id="tab-signup" class="tab-btn w-1/4 py-2 rounded-lg text-sm font-medium">Sign Up</button>
-      <button id="tab-vendor-login" class="tab-btn w-1/4 py-2 rounded-lg text-sm font-medium">Vendor</button>
-      <button id="tab-vendor-signup" class="tab-btn w-1/4 py-2 rounded-lg text-sm font-medium">Vendor Reg</button>
+    <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-5">
+      <button
+        id="tab-signin"
+        class="tab-btn px-3 py-2 rounded-lg text-sm font-semibold"
+      >
+        Sign In
+      </button>
+      <button
+        id="tab-signup"
+        class="tab-btn px-3 py-2 rounded-lg text-sm font-semibold"
+      >
+        Create Account
+      </button>
     </div>
 
-    <!-- Page-level error -->
     <div id="pageError" class="hidden text-sm text-red-600 mb-3"></div>
 
     <!-- Forms -->
     <div id="forms">
-      <!-- Customer Sign In -->
+      <!-- Sign In -->
       <form id="form-signin" class="space-y-3">
         <div>
           <label class="text-xs text-gray-600">Email</label>
-          <input id="signin-email" type="email" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-200" placeholder="Enter your email"/>
+          <input
+            id="signin-email"
+            type="email"
+            required
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            placeholder="Enter your email"
+          />
         </div>
         <div>
           <label class="text-xs text-gray-600">Password</label>
-          <input id="signin-password" type="password" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-200" placeholder="Enter your password"/>
+          <input
+            id="signin-password"
+            type="password"
+            minlength="6"
+            required
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            placeholder="Enter your password"
+          />
         </div>
-        <button class="w-full bg-sky-500 text-white py-2 rounded-lg font-semibold hover:bg-sky-600">Login</button>
-        <p id="signin-err" class="text-xs text-red-500 hidden"></p>
+        <button
+          id="btnSignIn"
+          type="submit"
+          class="w-full rounded-lg bg-blue-600 text-white py-2.5 text-sm font-semibold hover:bg-blue-700 transition"
+        >
+          Sign In
+        </button>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500">Forgot your password?</span>
+          <a
+            id="btnReset"
+            href="#"
+            class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
+          >
+            <span class="material-symbols-rounded">mail</span>
+            Send reset email
+          </a>
+        </div>
+        <div id="signin-err" class="hidden text-xs text-red-600"></div>
+
+        <p class="text-center text-xs text-gray-500 mt-3">
+          Want to be our Partner?
+          <a
+            class="underline text-blue-700"
+            href="mailto:bensais95@gamil.com"
+            rel="noopener noreferrer"
+            >Contact us for exclusive vendor access</a
+          >.
+        </p>
       </form>
 
-      <!-- Customer Sign Up -->
+      <!-- Sign Up -->
       <form id="form-signup" class="space-y-3 hidden">
         <div>
           <label class="text-xs text-gray-600">Full name</label>
-          <input id="signup-name" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-200" placeholder="Your full name"/>
+          <input
+            id="signup-name"
+            type="text"
+            required
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            placeholder="Juan Dela Cruz"
+          />
         </div>
         <div>
           <label class="text-xs text-gray-600">Email</label>
-          <input id="signup-email" type="email" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-200" placeholder="you@example.com"/>
+          <input
+            id="signup-email"
+            type="email"
+            required
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            placeholder="you@example.com"
+          />
         </div>
         <div>
           <label class="text-xs text-gray-600">Password</label>
-          <input id="signup-password" type="password" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-200" placeholder="Choose a secure password"/>
+          <input
+            id="signup-password"
+            type="password"
+            minlength="6"
+            required
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+            placeholder="Minimum 6 characters"
+          />
         </div>
-        <button class="w-full bg-sky-500 text-white py-2 rounded-lg font-semibold hover:bg-sky-600">Create account</button>
-        <p id="signup-err" class="text-xs text-red-500 hidden"></p>
-      </form>
+        <button
+          id="btnSignUp"
+          type="submit"
+          class="w-full rounded-lg bg-blue-600 text-white py-2.5 text-sm font-semibold hover:bg-blue-700 transition"
+        >
+          Create Account
+        </button>
+        <div id="signup-err" class="hidden text-xs text-red-600"></div>
 
-      <!-- Vendor Login -->
-      <form id="form-vendor-login" class="space-y-3 hidden">
-        <div>
-          <label class="text-xs text-gray-600">Email</label>
-          <input id="vendor-email" type="email" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-200" placeholder="vendor email"/>
-        </div>
-        <div>
-          <label class="text-xs text-gray-600">Password</label>
-          <input id="vendor-password" type="password" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-200" placeholder="Enter your password"/>
-        </div>
-        <button class="w-full bg-emerald-500 text-white py-2 rounded-lg font-semibold hover:bg-emerald-600">Vendor Login</button>
-        <p id="vendor-login-err" class="text-xs text-red-500 hidden"></p>
-      </form>
-
-      <!-- Vendor Registration -->
-      <form id="form-vendor-signup" class="space-y-3 hidden">
-        <div>
-          <label class="text-xs text-gray-600">Shop name</label>
-          <input id="vreg-shop" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-200" placeholder="Your shop name"/>
-        </div>
-        <div>
-          <label class="text-xs text-gray-600">Owner name</label>
-          <input id="vreg-owner" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-200" placeholder="Owner full name"/>
-        </div>
-        <div>
-          <label class="text-xs text-gray-600">Address</label>
-          <input id="vreg-address" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-200" placeholder="Shop address"/>
-        </div>
-        <div>
-          <label class="text-xs text-gray-600">Email</label>
-          <input id="vreg-email" type="email" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-200" placeholder="you@shop.com"/>
-        </div>
-        <div>
-          <label class="text-xs text-gray-600">Password</label>
-          <input id="vreg-password" type="password" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-200" placeholder="Choose a secure password"/>
-        </div>
-        <button class="w-full bg-emerald-500 text-white py-2 rounded-lg font-semibold hover:bg-emerald-600">Register vendor</button>
-        <p id="vreg-err" class="text-xs text-red-500 hidden"></p>
+        <p class="text-center text-xs text-gray-500 mt-3">
+          Want to be our Partner?
+          <a
+            class="underline text-blue-700"
+            href="mailto:bensais95@gmail.com"
+            rel="noopener noreferrer"
+            >Contact us for exclusive vendor access</a
+          >.
+        </p>
       </form>
     </div>
+
+    <p class="mt-4 text-center text-[11px] text-gray-400">
+      By continuing, you agree to our Terms and acknowledge our Privacy Policy.
+    </p>
   </div>
 
-  <!-- Tabs (no dependencies; works even if Firebase fails) -->
-  <script>
-    (function () {
-      const map = {
-        "tab-signin": "form-signin",
-        "tab-signup": "form-signup",
-        "tab-vendor-login": "form-vendor-login",
-        "tab-vendor-signup": "form-vendor-signup"
-      };
-      function showForm(tabId){
-        for (const id in map){
-          document.getElementById(id).classList.toggle("active", id===tabId);
-          document.getElementById(map[id]).classList.toggle("hidden", id!==tabId);
-        }
-      }
-      Object.keys(map).forEach(id => {
-        document.getElementById(id).addEventListener("click", () => showForm(id));
-      });
-      showForm("tab-signin");
-    })();
-  </script>
-
-  <!-- Firebase (inline config; modular SDK) -->
+  <!-- Firebase (v11 modular) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-    // 🔧 Inline config (same as the rest of your site)
-    const firebaseConfig = {
-      apiKey: "AIzaSyBWEsXe-FUspLVrQbWx9W9fdJjhEZxzs-c",
-      authDomain: "printit-web.firebaseapp.com",
-      databaseURL: "https://printit-web-default-rtdb.firebaseio.com",
-      projectId: "printit-web",
-      storageBucket: "printit-web.firebasestorage.app",
-      messagingSenderId: "432024876127",
-      appId: "1:432024876127:web:03f56715a495f801cd97ea",
-      measurementId: "G-MLX52XE058"
-    };
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      sendPasswordResetEmail,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const showErr = (id,msg)=>{ const el=document.getElementById(id); el.textContent=msg; el.classList.remove("hidden"); };
-    const hideErr = (id)=> document.getElementById(id).classList.add("hidden");
+    const tabSignin = document.getElementById("tab-signin");
+    const tabSignup = document.getElementById("tab-signup");
+    const formSignin = document.getElementById("form-signin");
+    const formSignup = document.getElementById("form-signup");
+    const pageError = document.getElementById("pageError");
 
-    // Customer sign-in → home.html
-    document.getElementById("form-signin").addEventListener("submit", async (e) => {
-      e.preventDefault(); hideErr("signin-err");
-      try{
-        await signInWithEmailAndPassword(
-          auth,
-          document.getElementById("signin-email").value.trim(),
-          document.getElementById("signin-password").value
-        );
+    function setActiveTab(which) {
+      const isIn = which === "in";
+      formSignin.classList.toggle("hidden", !isIn);
+      formSignup.classList.toggle("hidden", isIn);
+      tabSignin.classList.toggle("active", isIn);
+      tabSignup.classList.toggle("active", !isIn);
+      history.replaceState(null, "", isIn ? "#signin" : "#signup");
+      pageError.classList.add("hidden");
+    }
+    tabSignin.addEventListener("click", () => setActiveTab("in"));
+    tabSignup.addEventListener("click", () => setActiveTab("up"));
+    if (location.hash === "#signup") setActiveTab("up");
+    else setActiveTab("in");
+
+    async function routeUser(user) {
+      try {
+        const vRef = doc(db, "vendors", user.uid);
+        const vSnap = await getDoc(vRef);
+        if (vSnap.exists()) {
+          window.location.href = "vendor-dashboard.html";
+          return;
+        }
+        const uRef = doc(db, "users", user.uid);
+        const uSnap = await getDoc(uRef);
+        const role = uSnap.exists() ? uSnap.data().role : null;
+        if (role === "vendor")
+          window.location.href = "vendor-dashboard.html";
+        else window.location.href = "home.html";
+      } catch {
         window.location.href = "home.html";
-      }catch(err){ showErr("signin-err", err.message); }
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) routeUser(user);
     });
 
-    // Customer sign-up → users/{uid} → home.html
-    document.getElementById("form-signup").addEventListener("submit", async (e) => {
-      e.preventDefault(); hideErr("signup-err");
-      try{
+    function showErr(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg || "Something went wrong.";
+      el.classList.remove("hidden");
+    }
+    function hideErr(id) {
+      const el = document.getElementById(id);
+      el.classList.add("hidden");
+    }
+
+    document
+      .getElementById("form-signin")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideErr("signin-err");
+        const email = document.getElementById("signin-email").value.trim();
+        const password = document.getElementById("signin-password").value;
+        const btn = document.getElementById("btnSignIn");
+        btn.disabled = true;
+        btn.textContent = "Signing in…";
+        try {
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          await routeUser(cred.user);
+        } catch (err) {
+          showErr("signin-err", err?.message || "Unable to sign in.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Sign In";
+        }
+      });
+
+    document
+      .getElementById("btnReset")
+      .addEventListener("click", async (e) => {
+        e.preventDefault();
+        hideErr("signin-err");
+        const email = document.getElementById("signin-email").value.trim();
+        if (!email) {
+          showErr("signin-err", "Enter your email above first.");
+          return;
+        }
+        try {
+          await sendPasswordResetEmail(auth, email);
+          const el = document.getElementById("signin-err");
+          el.textContent = "Reset link sent. Check your inbox.";
+          el.classList.remove("hidden", "text-red-600");
+          el.classList.add("text-green-600");
+        } catch (err) {
+          showErr("signin-err", err?.message || "Could not send reset email.");
+        }
+      });
+
+    document
+      .getElementById("form-signup")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideErr("signup-err");
+        const name = document.getElementById("signup-name").value.trim();
         const email = document.getElementById("signup-email").value.trim();
         const password = document.getElementById("signup-password").value;
-        const name = document.getElementById("signup-name").value.trim();
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db,"users",cred.user.uid), {
-          fullName:name, email, role:"customer", createdAt:new Date().toISOString()
-        });
-        window.location.href = "home.html";
-      }catch(err){ showErr("signup-err", err.message); }
-    });
-
-    // Vendor login → verify vendors/{uid} exists → vendor-dashboard.html
-    document.getElementById("form-vendor-login").addEventListener("submit", async (e) => {
-      e.preventDefault(); hideErr("vendor-login-err");
-      try{
-        const email = document.getElementById("vendor-email").value.trim();
-        const password = document.getElementById("vendor-password").value;
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        const snap = await getDoc(doc(db,"vendors",cred.user.uid));
-        if (!snap.exists()) { showErr("vendor-login-err","This account is not registered as a vendor."); return; }
-        window.location.href = "vendor-dashboard.html";
-      }catch(err){ showErr("vendor-login-err", err.message); }
-    });
-
-    // Vendor registration → users/{uid} & vendors/{uid} → vendor-dashboard.html
-    document.getElementById("form-vendor-signup").addEventListener("submit", async (e) => {
-      e.preventDefault(); hideErr("vreg-err");
-      try{
-        const email = document.getElementById("vreg-email").value.trim();
-        const password = document.getElementById("vreg-password").value;
-        const shopName = document.getElementById("vreg-shop").value.trim();
-        const ownerName = document.getElementById("vreg-owner").value.trim();
-        const address = document.getElementById("vreg-address").value.trim();
-
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = cred.user.uid;
-        const vendorData = { email, shopName, ownerName, address, isApproved:true, mapLink:"", createdAt:new Date().toISOString() };
-        await setDoc(doc(db,"users",uid), { ...vendorData, role:"vendor" });
-        await setDoc(doc(db,"vendors",uid), vendorData);
-
-        window.location.href = "vendor-dashboard.html";
-      }catch(err){ showErr("vreg-err", err.message); }
-    });
+        const btn = document.getElementById("btnSignUp");
+        btn.disabled = true;
+        btn.textContent = "Creating…";
+        try {
+          const cred = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          if (name) await updateProfile(cred.user, { displayName: name });
+          const uRef = doc(db, "users", cred.user.uid);
+          const uSnap = await getDoc(uRef);
+          if (!uSnap.exists()) {
+            await setDoc(uRef, {
+              uid: cred.user.uid,
+              email,
+              name: name || null,
+              role: "customer",
+              createdAt: serverTimestamp(),
+            });
+          }
+          await routeUser(cred.user);
+        } catch (err) {
+          showErr("signup-err", err?.message || "Could not create account.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Create Account";
+        }
+      });
   </script>
 </body>
 </html>
