@@ -4,8 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Print-IT · Shop</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet" />
   <style>
+    .material-symbols-rounded{font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 24;font-size:1.05rem}
     body{background:#f3f6fb;font-family:Inter,system-ui,Arial}
     .card{background:#fff;border-radius:1rem;box-shadow:0 8px 22px rgba(15,23,42,.06)}
     .hero-img{height:220px;border-radius:1rem;object-fit:cover;width:100%}
@@ -14,429 +18,707 @@
     .skeleton{position:relative;overflow:hidden;background:#e5e7eb}
     .skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shimmer 1.2s infinite}
     @keyframes shimmer{to{transform:translateX(100%)}}
+
+    /* --- Chat widget --- */
+    .chat-fab{
+      position:fixed; right:18px; bottom:18px; z-index:60;
+      width:56px; height:56px; border-radius:999px;
+      background:#0ea5e9; color:#fff; box-shadow:0 12px 28px rgba(2,132,199,.35);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .chat-panel{
+      position:fixed; right:18px; bottom:86px; z-index:60;
+      width: min(92vw, 380px); max-height: 70vh;
+      background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+      box-shadow: 0 12px 28px rgba(2,132,199,.20); display:none;
+    }
+    .chat-panel.open{ display:flex; flex-direction:column; }
+    .chat-scroll{ overflow-y:auto; padding:12px; gap:8px; display:flex; flex-direction:column; }
+    .msg{max-width:80%; padding:.5rem .65rem; border-radius:12px; font-size:.9rem; line-height:1.25rem}
+    .msg.me{align-self:flex-end; background:#0ea5e9; color:#fff; border-bottom-right-radius:6px}
+    .msg.them{align-self:flex-start; background:#f1f5f9; color:#0f172a; border-bottom-left-radius:6px}
+    .msg-time{font-size:.68rem; color:#94a3b8; margin-top:2px}
   </style>
+
+  <!-- PDF.js for auto page counting (existing feature) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window['pdfjsLib']) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
 </head>
 <body class="min-h-screen">
 
-  <!-- Top bar -->
-  <header class="bg-white border-b">
-    <div class="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between">
-      <button onclick="window.location.href='home.html'" class="text-sm text-gray-600 hover:text-sky-600">← Back to Home</button>
-      <div class="flex items-center gap-2">
-        <img src="logo-placeholder.png" class="w-8 h-8 rounded-md bg-gray-100 object-cover" alt="logo">
-        <span class="text-sky-600 font-semibold">PrintHub</span>
-      </div>
-      <button id="logoutBtn" class="text-sm text-gray-600 hover:text-red-600">🚪 Logout</button>
+<header class="bg-white border-b">
+  <div class="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between">
+    <button onclick="window.location.href='home.html'" class="text-sm text-gray-600 hover:text-sky-600 inline-flex items-center gap-1">
+      <span class="material-symbols-rounded">arrow_back</span> Back to Home
+    </button>
+    <div class="flex items-center gap-2">
+      <img src="logo-placeholder.png" class="w-8 h-8 rounded-md bg-gray-100 object-cover" alt="logo">
+      <span class="text-sky-600 font-semibold">PrintHub</span>
     </div>
-  </header>
+    <button id="logoutBtn" class="text-sm text-gray-600 hover:text-red-600 inline-flex items-center gap-1">
+      <span class="material-symbols-rounded">logout</span> Logout
+    </button>
+  </div>
+</header>
 
-  <main class="max-w-7xl mx-auto px-5 py-6 space-y-6">
-    <!-- HERO -->
-    <section class="card p-0 overflow-hidden">
-      <div class="relative">
-        <img id="heroImage" class="hero-img skeleton" alt="Shop banner">
-        <div class="absolute left-5 bottom-4 bg-black/45 backdrop-blur-sm text-white rounded-xl px-4 py-3">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-white/95 flex items-center justify-center text-sky-600">🖨️</div>
-            <div>
-              <h1 id="shopTitle" class="text-xl md:text-2xl font-bold drop-shadow">Loading shop...</h1>
-              <div class="flex items-center gap-3 text-xs md:text-sm mt-1">
-                <span id="ratingBox" class="hidden"><span class="text-amber-400">★</span> <span id="ratingVal">4.6</span></span>
-                <span id="distanceBox" class="hidden">📍 <span id="distanceVal"></span></span>
-                <span id="openBadge" class="pill bg-emerald-500 text-white hidden">Open now</span>
-                <span id="closedBadge" class="pill bg-red-500 text-white hidden">Closed</span>
-              </div>
+<main class="max-w-7xl mx-auto px-5 py-6 space-y-6">
+  <!-- HERO -->
+  <section class="card p-0 overflow-hidden">
+    <div class="relative">
+      <img id="heroImage" class="hero-img skeleton" alt="Shop banner">
+      <div class="absolute left-5 bottom-4 bg-black/45 backdrop-blur-sm text-white rounded-xl px-4 py-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-white/95 flex items-center justify-center text-sky-600">
+            <span class="material-symbols-rounded">print</span>
+          </div>
+          <div>
+            <h1 id="shopTitle" class="text-xl md:text-2xl font-bold drop-shadow">Loading shop...</h1>
+            <div class="flex items-center gap-3 text-xs md:text-sm mt-1">
+              <span id="ratingBox" class="hidden inline-flex items-center gap-1">
+                <span class="material-symbols-rounded">star</span><span id="ratingVal">4.6</span>
+              </span>
+              <span id="distanceBox" class="hidden inline-flex items-center gap-1">
+                <span class="material-symbols-rounded">location_on</span><span id="distanceVal"></span>
+              </span>
+              <span id="openBadge" class="pill bg-emerald-500 text-white hidden">Open now</span>
+              <span id="closedBadge" class="pill bg-red-500 text-white hidden">Closed</span>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- GRID -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Left: Services -->
-      <div class="lg:col-span-2 space-y-6">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold text-slate-800">Our Services</h2>
-        </div>
+  <!-- GRID -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Services -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-slate-800">Our Services</h2>
+      </div>
+      <div id="servicesList" class="grid sm:grid-cols-2 gap-5"></div>
+      <p id="noServices" class="text-sm text-gray-500 text-center py-10 hidden">This shop has no services yet.</p>
+    </div>
 
-        <div id="servicesList" class="grid sm:grid-cols-2 gap-5">
-          <!-- Service cards injected here -->
-        </div>
-
-        <p id="noServices" class="text-sm text-gray-500 text-center py-10 hidden">
-          This shop has no services yet.
-        </p>
+    <!-- Info -->
+    <div class="space-y-6">
+      <div class="card p-5">
+        <h3 class="font-semibold text-slate-800 mb-3">Business Information</h3>
+        <ul class="text-sm text-gray-700 space-y-2">
+          <li id="infoAddress" class="flex gap-3 items-start"><span class="material-symbols-rounded mt-0.5">location_on</span><span></span></li>
+          <li id="infoPhone" class="flex gap-3 items-start hidden"><span class="material-symbols-rounded mt-0.5">call</span><span></span></li>
+          <li id="infoEmail" class="flex gap-3 items-start hidden"><span class="material-symbols-rounded mt-0.5">mail</span><span></span></li>
+        </ul>
+        <a id="mapLink" target="_blank" class="mt-3 inline-flex items-center gap-2 text-sky-600 hover:underline hidden">
+          <span class="material-symbols-rounded">map</span> Open in Google Maps
+        </a>
       </div>
 
-      <!-- Right: Info -->
-      <div class="space-y-6">
-        <!-- Business Info -->
-        <div class="card p-5">
-          <h3 class="font-semibold text-slate-800 mb-3">Business Information</h3>
-          <ul class="text-sm text-gray-700 space-y-2">
-            <li id="infoAddress" class="flex gap-3"><span>📍</span><span></span></li>
-            <li id="infoPhone" class="flex gap-3 hidden"><span>📞</span><span></span></li>
-            <li id="infoEmail" class="flex gap-3 hidden"><span>✉️</span><span></span></li>
-          </ul>
-          <a id="mapLink" target="_blank"
-             class="mt-3 inline-flex items-center gap-2 text-sky-600 hover:underline hidden">📍 Open in Google Maps</a>
-        </div>
-
-        <!-- Business Hours -->
-        <div class="card p-5">
-          <h3 class="font-semibold text-slate-800 mb-3">Business Hours</h3>
-          <div id="hoursBox" class="text-sm text-gray-700 space-y-1">
-            <p class="text-gray-400">Not provided.</p>
-          </div>
-        </div>
-
-        <!-- Reviews -->
-        <div class="card p-5">
-          <h3 class="font-semibold text-slate-800 mb-3">Recent Reviews</h3>
-          <div id="reviewsBox" class="space-y-3">
-            <p class="text-sm text-gray-400">No reviews yet.</p>
-          </div>
-        </div>
+      <!-- GCash QR card -->
+      <div id="payCard" class="card p-5 hidden">
+        <h3 class="font-semibold text-slate-800 mb-2 inline-flex items-center gap-2">
+          <span class="material-symbols-rounded">qr_code_2</span> Pay via GCash
+        </h3>
+        <p class="text-xs text-gray-600 mb-3">Scan this QR to pay. Then enter your GCash number in the order form so the vendor can confirm.</p>
+        <img id="payQR" alt="GCash QR" class="w-56 h-56 object-contain rounded-md bg-white border mx-auto">
       </div>
-    </section>
-  </main>
 
-  <!-- ORDER MODAL -->
-  <div id="orderModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl w-full max-w-md p-6 relative">
-      <button id="closeModal" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">✕</button>
-      <h3 class="text-lg font-semibold mb-4">Place Order</h3>
+      <div class="card p-5">
+        <h3 class="font-semibold text-slate-800 mb-3">Business Hours</h3>
+        <div id="hoursBox" class="text-sm text-gray-700 space-y-1"><p class="text-gray-400">Not provided.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ORDER MODAL (existing) -->
+<div id="orderModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl w-[92vw] max-w-xl relative flex flex-col">
+    <div class="px-5 pt-4 pb-3 border-b sticky top-0 bg-white rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-semibold">Place Order</h3>
+        <button id="closeModal" class="text-gray-400 hover:text-gray-600 inline-flex items-center gap-1">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <p id="orderServiceLabel" class="text-xs text-gray-500 mt-1"></p>
+    </div>
+
+    <div class="px-5 py-4 space-y-3 overflow-y-auto" style="max-height: 70vh;">
       <form id="orderForm" class="space-y-3">
         <input type="hidden" id="orderServiceId" />
         <input type="hidden" id="orderServiceName" />
-        <p id="orderServiceLabel" class="font-medium text-gray-800 mb-2"></p>
+        <input type="hidden" id="orderUnitPrice" />
 
-        <div>
-          <label class="text-sm text-gray-600">Your Name</label>
-          <input id="customerName" class="w-full border rounded-md p-2" required />
-        </div>
-
-        <div>
-          <label class="text-sm text-gray-600">Contact (email/phone)</label>
-          <input id="customerContact" class="w-full border rounded-md p-2" required />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
+        <!-- Basic details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="text-sm text-gray-600">Quantity</label>
-            <input id="orderQty" type="number" min="1" value="1" class="w-full border rounded-md p-2" />
+            <label class="text-xs text-gray-600">Your name</label>
+            <input id="customerName" class="w-full border rounded-md p-2 text-sm" required />
           </div>
           <div>
-            <label class="text-sm text-gray-600">Color</label>
-            <select id="colorMode" class="w-full border rounded-md p-2">
-              <option value="colored">Colored</option>
-              <option value="black-white">Black & White</option>
-            </select>
+            <label class="text-xs text-gray-600">Contact (email/phone)</label>
+            <input id="customerContact" class="w-full border rounded-md p-2 text-sm" required />
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <!-- Payment + Fulfillment -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="text-sm text-gray-600">Size</label>
-            <select id="size" class="w-full border rounded-md p-2">
-              <option value="A4">A4</option>
-              <option value="A3">A3</option>
-              <option value="2x3ft">2x3 ft (tarp)</option>
-              <option value="3x5ft">3x5 ft (tarp)</option>
-              <option value="custom">Custom</option>
+            <label class="text-xs text-gray-600">Payment</label>
+            <select id="paymentMethod" class="w-full border rounded-md p-2 text-sm">
+              <option value="gcash">GCash (scan QR)</option>
+              <option value="cod">Pay at pickup</option>
             </select>
           </div>
           <div>
-            <label class="text-sm text-gray-600">Sides</label>
-            <select id="sides" class="w-full border rounded-md p-2">
-              <option value="single">Single</option>
-              <option value="double">Double</option>
+            <label class="text-xs text-gray-600">Fulfillment</label>
+            <select id="fulfillmentMethod" class="w-full border rounded-md p-2 text-sm">
+              <option value="pickup">Pickup</option>
+              <option value="delivery">Delivery</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="text-sm text-gray-600">File link (Google Drive, etc.)</label>
-          <input id="orderFileLink" type="url" class="w-full border rounded-md p-2" placeholder="https://..." />
+          <label class="text-xs text-gray-600">Your GCash number (optional)</label>
+          <input id="gcashNumber" class="w-full border rounded-md p-2 text-sm" placeholder="09xxxxxxxxx" inputmode="numeric" />
         </div>
 
+        <!-- GCash box -->
+        <div id="gcashPayBox" class="hidden border rounded-lg p-3 bg-sky-50/50">
+          <div class="text-xs text-gray-700 mb-2 inline-flex items-center gap-1">
+            <span class="material-symbols-rounded">qr_code_2</span> Scan to pay via GCash
+          </div>
+          <img id="gcashQRInModal" alt="GCash QR" class="w-48 h-48 object-contain rounded-md bg-white border mx-auto">
+          <div id="gcashNoQrNote" class="hidden text-xs text-red-600 mt-2 text-center">
+            The vendor has not uploaded a GCash QR yet. Choose <b>Pay at pickup</b> or contact the shop.
+          </div>
+        </div>
+
+        <!-- Upload -->
         <div>
-          <label class="text-sm text-gray-600">Notes</label>
-          <textarea id="orderNotes" class="w-full border rounded-md p-2" rows="2"></textarea>
+          <label class="text-xs text-gray-600">Upload document (PDF/Image)</label>
+          <input id="orderDocFile" type="file" accept=".pdf,.png,.jpg,.jpeg" class="w-full border rounded-md p-2 text-sm" />
+          <p class="text-[11px] text-gray-500 mt-1">Max 20 MB. PDF auto-counts pages.</p>
         </div>
 
-        <button class="w-full bg-sky-600 text-white py-2 rounded-md font-semibold hover:bg-sky-700">
-          Submit Order
-        </button>
+        <!-- Print options -->
+        <div class="rounded-lg border bg-gray-50/70 px-3 py-3 space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="text-xs text-gray-600">Copies</label>
+              <input id="orderQty" type="number" min="1" value="1" class="w-full border rounded-md p-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-600">Pages</label>
+              <input id="orderPages" type="number" min="1" value="1" class="w-full border rounded-md p-2 text-sm" />
+              <p id="pagesHint" class="text-[11px] text-gray-500 mt-1 hidden">Auto from PDF</p>
+            </div>
+            <div>
+              <label class="text-xs text-gray-600">Size</label>
+              <select id="size" class="w-full border rounded-md p-2 text-sm">
+                <option value="short">Short (8.5×11)</option>
+                <option value="A4" selected>A4 (8.27×11.69)</option>
+                <option value="long">Long (8.5×13)</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="text-xs text-gray-600">Sides</label>
+              <select id="sides" class="w-full border rounded-md p-2 text-sm">
+                <option value="single">Single</option>
+                <option value="double">Double</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-xs text-gray-600">Notes</label>
+              <input id="orderNotes" class="w-full border rounded-md p-2 text-sm" placeholder="Ex: staple left" />
+            </div>
+          </div>
+
+          <!-- Totals -->
+          <div class="bg-white border rounded-md px-3 py-2 text-sm space-y-1">
+            <div class="flex items-center justify-between">
+              <span>Items total</span>
+              <span id="itemsTotalLabel" class="font-medium">₱0</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Delivery fee</span>
+              <span id="deliveryFeeLabel" class="font-medium">₱0</span>
+            </div>
+            <div class="flex items-center justify-between text-sky-700 text-base font-semibold pt-1 border-t">
+              <span>Grand total</span>
+              <span id="grandTotalLabel">₱0</span>
+            </div>
+            <div class="text-[11px] text-gray-500">Price per page: <b id="unitPriceLabel">₱0</b></div>
+          </div>
+        </div>
       </form>
     </div>
+
+    <div class="px-5 py-3 border-t sticky bottom-0 bg-white rounded-b-xl">
+      <div class="flex gap-3">
+        <button type="button" id="cancelOrderBtn" class="w-1/2 border border-gray-300 text-gray-700 py-2 rounded-md font-semibold hover:bg-gray-50">Cancel</button>
+        <button form="orderForm" type="submit" class="w-1/2 bg-sky-600 text-white py-2 rounded-md font-semibold hover:bg-sky-700">Submit Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT: Floating button + panel -->
+<button id="chatFab" class="chat-fab" title="Chat with vendor">
+  <span class="material-symbols-rounded">chat</span>
+</button>
+
+<div id="chatPanel" class="chat-panel">
+  <div class="px-3 py-2 border-b bg-white rounded-t-[14px] flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-rounded text-sky-600">chat</span>
+      <div class="text-sm">
+        <div class="font-semibold" id="chatHeader">Chat with vendor</div>
+        <div class="text-[11px] text-gray-500">Typically replies within a day</div>
+      </div>
+    </div>
+    <button id="chatClose" class="text-gray-500 hover:text-gray-800">
+      <span class="material-symbols-rounded">close</span>
+    </button>
   </div>
 
-  <!-- Firebase + Logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc, collection, getDocs, addDoc, setDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
+  <div id="chatMessages" class="chat-scroll"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  <form id="chatForm" class="p-2 border-t flex items-center gap-2">
+    <input id="chatInput" class="flex-1 border rounded-md px-3 py-2 text-sm" placeholder="Type a message…" />
+    <button class="bg-sky-600 hover:bg-sky-700 text-white rounded-md px-3 py-2 text-sm inline-flex items-center gap-1" type="submit">
+      <span class="material-symbols-rounded">send</span> Send
+    </button>
+  </form>
+</div>
 
-    // Elements
-    const heroImage = document.getElementById("heroImage");
-    const shopTitle = document.getElementById("shopTitle");
-    const ratingBox = document.getElementById("ratingBox");
-    const ratingVal = document.getElementById("ratingVal");
-    const distanceBox = document.getElementById("distanceBox");
-    const distanceVal = document.getElementById("distanceVal");
-    const openBadge = document.getElementById("openBadge");
-    const closedBadge = document.getElementById("closedBadge");
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, addDoc, setDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { firebaseConfig } from "./firebase-config.js";
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    const infoAddress = document.querySelector("#infoAddress span:last-child");
-    const infoPhone = document.getElementById("infoPhone");
-    const infoPhoneVal = infoPhone?.querySelector("span:last-child");
-    const infoEmail = document.getElementById("infoEmail");
-    const infoEmailVal = infoEmail?.querySelector("span:last-child");
-    const mapLink = document.getElementById("mapLink");
+  const SUPABASE_URL = "https://cejisdlnmftryocmtoju.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlamlzZGxubWZ0cnlvY210b2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NzA2NDgsImV4cCI6MjA3ODM0NjY0OH0.hXxUIsTaM7VaYfytDiDUBNEnHM6ogFbV1K9xPHyNQyM";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const servicesList = document.getElementById("servicesList");
-    const noServices = document.getElementById("noServices");
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const hoursBox = document.getElementById("hoursBox");
-    const reviewsBox = document.getElementById("reviewsBox");
+  // Elements (existing)
+  const heroImage   = document.getElementById("heroImage");
+  const shopTitle   = document.getElementById("shopTitle");
+  const ratingBox   = document.getElementById("ratingBox");
+  const ratingVal   = document.getElementById("ratingVal");
+  const distanceBox = document.getElementById("distanceBox");
+  const distanceVal = document.getElementById("distanceVal");
+  const openBadge   = document.getElementById("openBadge");
+  const closedBadge = document.getElementById("closedBadge");
 
-    // auth guard
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "auth.html";
-        return;
-      }
-    });
+  const infoAddress = document.querySelector("#infoAddress span:last-child");
+  const infoPhone = document.getElementById("infoPhone");
+  const infoPhoneVal = infoPhone?.querySelector("span:last-child");
+  const infoEmail = document.getElementById("infoEmail");
+  const infoEmailVal = infoEmail?.querySelector("span:last-child");
+  const mapLink = document.getElementById("mapLink");
 
-    // logout
-    document.getElementById("logoutBtn").addEventListener("click", async ()=>{
-      await signOut(auth);
-      window.location.href = "auth.html";
-    });
+  const payCard = document.getElementById("payCard");
+  const payQR   = document.getElementById("payQR");
 
-    // get shop id
-    const params = new URLSearchParams(window.location.search);
-    const shopId = params.get("id");
-    if (!shopId) window.location.href = "home.html";
+  const servicesList = document.getElementById("servicesList");
+  const noServices = document.getElementById("noServices");
 
-    const FALLBACK_IMG = "https://images.unsplash.com/photo-1583964739856-eb5b08f6f5d6?q=80&w=1200&auto=format&fit=crop";
+  // Modal refs
+  const modal = document.getElementById("orderModal");
+  const closeModalBtn = document.getElementById("closeModal");
+  const orderForm = document.getElementById("orderForm");
+  const cancelOrderBtn = document.getElementById("cancelOrderBtn");
 
-    // load shop info + services + reviews
-    (async function init(){
+  const paymentMethod = document.getElementById("paymentMethod");
+  const fulfillmentMethod = document.getElementById("fulfillmentMethod");
+  const gcashPayBox   = document.getElementById("gcashPayBox");
+  const gcashQRInModal= document.getElementById("gcashQRInModal");
+  const gcashNoQrNote = document.getElementById("gcashNoQrNote");
+
+  // Pricing + count
+  const qtyEl    = document.getElementById("orderQty");
+  const pagesEl  = document.getElementById("orderPages");
+  const sizeEl   = document.getElementById("size");
+  const unitPriceHidden = document.getElementById("orderUnitPrice");
+  const unitPriceLabel  = document.getElementById("unitPriceLabel");
+
+  const itemsTotalLabel = document.getElementById("itemsTotalLabel");
+  const deliveryFeeLabel = document.getElementById("deliveryFeeLabel");
+  const grandTotalLabel = document.getElementById("grandTotalLabel");
+  const pagesHint = document.getElementById("pagesHint");
+
+  const sizeFactors = { short: 1.0, A4: 1.0, long: 1.0 };
+  let vendorDeliveryFee = 30; // default; override from vendor doc
+  let vendorGcashQrUrl = null;
+
+  // CHAT refs
+  const chatFab = document.getElementById("chatFab");
+  const chatPanel = document.getElementById("chatPanel");
+  const chatClose = document.getElementById("chatClose");
+  const chatForm = document.getElementById("chatForm");
+  const chatInput = document.getElementById("chatInput");
+  const chatMessages = document.getElementById("chatMessages");
+  const chatHeader = document.getElementById("chatHeader");
+
+  // Auth guard
+  let currentUser = null;
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = "auth.html"; return; }
+    currentUser = user;
+  });
+  document.getElementById("logoutBtn").addEventListener("click", async ()=>{ await signOut(auth); window.location.href = "auth.html"; });
+
+  // shop id
+  const params = new URLSearchParams(window.location.search);
+  const shopId = params.get("id");
+  if (!shopId) window.location.href = "home.html";
+
+  const FALLBACK_IMG = "https://images.unsplash.com/photo-1583964739856-eb5b08f6f5d6?q=80&w=1200&auto=format&fit=crop";
+
+  let vendorName = "Vendor";
+  (async function init(){
+    try{
+      const vSnap = await getDoc(doc(db, "vendors", shopId));
+      if (!vSnap.exists()){ shopTitle.textContent = "Shop not found"; heroImage.src = FALLBACK_IMG; heroImage.classList.remove("skeleton"); return; }
+      const v = vSnap.data();
+
+      vendorName = v.shopName || v.name || "Vendor";
+      chatHeader.textContent = `Chat with ${vendorName}`;
+
+      // delivery fee
+      vendorDeliveryFee = Number(v.deliveryFee ?? 30);
+
+      heroImage.src = v.shopImage || v.coverImage || v.bannerImage || FALLBACK_IMG;
+      heroImage.onload = () => heroImage.classList.remove("skeleton");
+      shopTitle.textContent = vendorName;
+
+      if (typeof v.rating === "number" || v.rating) { ratingVal.textContent = (typeof v.rating === "number") ? v.rating.toFixed(1) : v.rating; ratingBox.classList.remove("hidden"); }
+      if (v.distance) { distanceVal.textContent = v.distance + " miles away"; distanceBox.classList.remove("hidden"); }
+      if (v.isOpen === false) closedBadge.classList.remove("hidden"); else openBadge.classList.remove("hidden");
+
+      infoAddress.textContent = v.address || "No address provided";
+      if (v.phone) { infoPhoneVal.textContent = v.phone; infoPhone.classList.remove("hidden"); }
+      if (v.email) { infoEmailVal.textContent = v.email; infoEmail.classList.remove("hidden"); }
+      if (v.mapLink) { mapLink.href = v.mapLink; mapLink.classList.remove("hidden"); }
+
+      vendorGcashQrUrl =
+        v?.payments?.gcashQrUrl ||
+        v?.payments?.gcashQR ||
+        v?.gcashQrUrl ||
+        v?.gcashQR ||
+        v?.gcash_qr || null;
+
+      if (vendorGcashQrUrl){ payQR.src = vendorGcashQrUrl; payCard.classList.remove("hidden"); gcashQRInModal.src = vendorGcashQrUrl; }
+
+      // services
+      servicesList.innerHTML = "";
+      let rendered = false;
       try{
-        // shop doc
-        const vSnap = await getDoc(doc(db, "vendors", shopId));
-        if (!vSnap.exists()){
-          shopTitle.textContent = "Shop not found";
-          heroImage.src = FALLBACK_IMG; heroImage.classList.remove("skeleton");
-          return;
-        }
-        const v = vSnap.data();
-
-        // hero image: shopImage || first service image || fallback
-        heroImage.src = v.shopImage || FALLBACK_IMG;
-        heroImage.onload = () => heroImage.classList.remove("skeleton");
-        shopTitle.textContent = v.shopName || "Unnamed Shop";
-
-        if (typeof v.rating === "number" || v.rating) {
-          ratingVal.textContent = (typeof v.rating === "number") ? v.rating.toFixed(1) : v.rating;
-          ratingBox.classList.remove("hidden");
-        }
-        if (v.distance) {
-          distanceVal.textContent = v.distance + " miles away";
-          distanceBox.classList.remove("hidden");
-        }
-        if (v.isOpen === false) closedBadge.classList.remove("hidden");
-        else openBadge.classList.remove("hidden");
-
-        infoAddress.textContent = v.address || "No address provided";
-        if (v.phone) { infoPhoneVal.textContent = v.phone; infoPhone.classList.remove("hidden"); }
-        if (v.email) { infoEmailVal.textContent = v.email; infoEmail.classList.remove("hidden"); }
-        if (v.mapLink) { mapLink.href = v.mapLink; mapLink.classList.remove("hidden"); }
-
-        // hours (optional object like {Mon:"8:00 AM - 8:00 PM", ...})
-        if (v.businessHours && typeof v.businessHours === "object"){
-          hoursBox.innerHTML = "";
-          const order = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-          order.forEach(d=>{
-            const val = v.businessHours[d] || v.businessHours[d.slice(0,3)] || null;
-            const p = document.createElement("p");
-            p.innerHTML = `<span class="inline-block w-28 text-gray-500">${d}</span> <span>${val || "—"}</span>`;
-            hoursBox.appendChild(p);
-          });
-        }
-
-        // services
-        const sSnap = await getDocs(collection(db,"vendors",shopId,"services"));
-        servicesList.innerHTML = "";
-        if (sSnap.empty) { noServices.classList.remove("hidden"); }
-        else {
+        const sSnap = await getDocs(collection(db, "vendors", shopId, "services"));
+        if (!sSnap.empty) {
           noServices.classList.add("hidden");
-          let firstServiceImage = null;
-
-          sSnap.forEach(s=>{
-            const d=s.data();
-            if (!v.shopImage && d.imageUrl && !firstServiceImage) {
-              // use first service image as hero if shopImage absent
-              firstServiceImage = d.imageUrl;
-              heroImage.src = firstServiceImage;
-            }
-            servicesList.appendChild(serviceCard(s.id, d));
+          sSnap.forEach(s => {
+            servicesList.appendChild(serviceCard(s.id, s.data()));
           });
+          rendered = true;
         }
+      }catch(e){ console.warn("services subcollection error", e); }
 
-        // reviews (optional)
-        try {
-          const rSnap = await getDocs(collection(db,"vendors",shopId,"reviews"));
-          if (!rSnap.empty) {
-            reviewsBox.innerHTML = "";
-            rSnap.forEach(r=>{
-              const d=r.data();
-              reviewsBox.appendChild(reviewItem(d));
-            });
-          }
-        } catch { /* ignore if collection missing */ }
-
-      }catch(err){
-        console.error(err);
-        shopTitle.textContent = "Error loading shop";
-        heroImage.src = FALLBACK_IMG; heroImage.classList.remove("skeleton");
-      }
-    })();
-
-    function serviceCard(id, d){
-      const wrap = document.createElement("div");
-      wrap.className = "card overflow-hidden";
-      const img = d.imageUrl || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1200&auto=format&fit=crop";
-      const available = (d.available !== false);
-      wrap.innerHTML = `
-        <img src="${img}" class="w-full h-40 object-cover" alt="">
-        <div class="p-4">
-          <h4 class="font-semibold text-slate-800">${escapeHTML(d.serviceName || "Service")}</h4>
-          <p class="text-sm text-gray-600 mt-1 truncate-2">${escapeHTML(d.serviceDescription || "—")}</p>
-          <div class="mt-3 flex items-center justify-between">
-            <span class="text-sky-600 font-medium">₱${(d.servicePrice || 0).toLocaleString()}</span>
-            <span class="pill ${available ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}">
-              ${available ? "Available" : "Unavailable"}
-            </span>
-          </div>
-          <button class="mt-3 w-full bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-md orderBtn"
-            data-id="${id}" data-name="${escapeHTML(d.serviceName || "Service")}" data-price="${d.servicePrice || 0}">
-            Order Now
-          </button>
-        </div>
-      `;
-      // attach order handler
-      setTimeout(()=>{
-        wrap.querySelector(".orderBtn").addEventListener("click", (ev) => {
-          openOrderModal({
-            serviceId: ev.currentTarget.dataset.id,
-            serviceName: ev.currentTarget.dataset.name,
-            servicePrice: Number(ev.currentTarget.dataset.price || 0)
+      if (!rendered) {
+        const arr = Array.isArray(v.services) ? v.services : [];
+        if (arr.length) {
+          noServices.classList.add("hidden");
+          arr.forEach((s, idx) => {
+            const mapped = { serviceName: s.name, serviceDescription: s.description, servicePrice: s.price, imageUrl: s.image, available: s.available !== false };
+            servicesList.appendChild(serviceCard(`arr-${idx}`, mapped));
           });
+          rendered = true;
+        }
+      }
+      if (!rendered) noServices.classList.remove("hidden");
+      computeTotals();
+    }catch(err){
+      console.error(err);
+      shopTitle.textContent = "Error loading shop";
+      heroImage.src = FALLBACK_IMG; heroImage.classList.remove("skeleton");
+    }
+  })();
+
+  function serviceCard(id, d){
+    const wrap = document.createElement("div");
+    wrap.className = "card overflow-hidden";
+    const img = d.imageUrl || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1200&auto=format&fit=crop";
+    const available = (d.available !== false);
+    wrap.innerHTML = `
+      <img src="${img}" class="w-full h-40 object-cover" alt="">
+      <div class="p-4">
+        <h4 class="font-semibold text-slate-800">${escapeHTML(d.serviceName || "Service")}</h4>
+        <p class="text-xs text-gray-500 mt-1">Price per page: <b>₱${(d.servicePrice || 0).toLocaleString()}</b></p>
+        <p class="text-sm text-gray-600 mt-1 truncate-2">${escapeHTML(d.serviceDescription || "—")}</p>
+        <div class="mt-3 flex items-center justify-between">
+          <span class="pill ${available ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}">${available ? "Available" : "Unavailable"}</span>
+        </div>
+        <button class="mt-3 w-full bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-md orderBtn"
+          data-id="${id}" data-name="${escapeHTML(d.serviceName || "Service")}" data-price="${d.servicePrice || 0}">
+          Order Now
+        </button>
+      </div>
+    `;
+    setTimeout(()=>{
+      wrap.querySelector(".orderBtn").addEventListener("click", (ev) => {
+        openOrderModal({
+          serviceId: ev.currentTarget.dataset.id,
+          serviceName: ev.currentTarget.dataset.name,
+          servicePrice: Number(ev.currentTarget.dataset.price || 0)
         });
       });
-      return wrap;
-    }
-
-    function reviewItem(d) {
-      const el = document.createElement("div");
-      const name = escapeHTML(d.name || "Anonymous");
-      const text = escapeHTML(d.text || "");
-      const stars = Number(d.rating || 5);
-      const starsHtml = "★".repeat(Math.max(1, Math.min(5, Math.round(stars))));
-      el.className = "border rounded-lg p-3 text-sm";
-      el.innerHTML = `
-        <div class="flex items-center justify-between">
-          <strong>${name}</strong>
-          <span class="text-amber-400">${starsHtml}</span>
-        </div>
-        <p class="text-gray-600 mt-1">${text}</p>
-      `;
-      return el;
-    }
-
-    /* ---------- Order modal ---------- */
-    const modal = document.getElementById("orderModal");
-    const closeModal = document.getElementById("closeModal");
-    closeModal.addEventListener("click", ()=> modal.classList.add("hidden"));
-
-    function openOrderModal({ serviceId, serviceName, servicePrice }) {
-      document.getElementById("orderServiceId").value = serviceId;
-      document.getElementById("orderServiceName").value = serviceName;
-      document.getElementById("orderServiceLabel").textContent = `${serviceName} (₱${servicePrice})`;
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    document.getElementById("orderForm").addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      const user = auth.currentUser;
-      if (!user){ alert("Please login again."); return; }
-
-      const serviceId = document.getElementById("orderServiceId").value;
-      const serviceName = document.getElementById("orderServiceName").value;
-      const customerName = document.getElementById("customerName").value.trim();
-      const customerContact = document.getElementById("customerContact").value.trim();
-      const qty = parseInt(document.getElementById("orderQty").value || "1", 10);
-      const colorMode = document.getElementById("colorMode").value;
-      const size = document.getElementById("size").value;
-      const sides = document.getElementById("sides").value;
-      const fileURL = document.getElementById("orderFileLink").value.trim();
-      const notes = document.getElementById("orderNotes").value;
-
-      const orderData = {
-        serviceId,
-        serviceName,
-        customerName,
-        customerContact,
-        qty,
-        colorMode,
-        size,
-        sides,
-        fileURL,
-        notes,
-        status: "pending",
-        createdAt: serverTimestamp(),
-        customerUid: user.uid,
-        vendorId: shopId
-      };
-
-      try {
-        // vendor master
-        const vendorOrderRef = await addDoc(collection(db,"vendors",shopId,"orders"), orderData);
-        // customer copy (same id)
-        await setDoc(doc(db,"users",user.uid,"orders",vendorOrderRef.id), {
-          ...orderData,
-          vendorOrderId: vendorOrderRef.id
-        });
-
-        alert("✅ Order submitted!");
-        // Reset the form in plain browser JS (remove TypeScript cast which causes a syntax error)
-        if (e.currentTarget instanceof HTMLFormElement) {
-          e.currentTarget.reset();
-        } else if (e.target instanceof HTMLFormElement) {
-          e.target.reset();
-        }
-        modal.classList.add("hidden");
-      } catch (err) {
-        console.error(err);
-        alert("Error creating order: " + (err.message || err));
-      }
     });
+    return wrap;
+  }
 
-    function escapeHTML(s){
-      return String(s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+  /* ---------- Modal & totals ---------- */
+  let modalOpen = false;
+
+  function syncGcashBoxVisibility(){
+    const isGCash = paymentMethod.value === "gcash";
+    const hasQR   = !!vendorGcashQrUrl;
+    gcashPayBox.classList.toggle("hidden", !isGCash);
+    if (!isGCash) return;
+    if (hasQR) { gcashQRInModal.src = vendorGcashQrUrl; gcashQRInModal.classList.remove("hidden"); gcashNoQrNote.classList.add("hidden"); }
+    else { gcashQRInModal.src = ""; gcashQRInModal.classList.add("hidden"); gcashNoQrNote.classList.remove("hidden"); }
+  }
+  paymentMethod.addEventListener("change", ()=>{ syncGcashBoxVisibility(); });
+
+  function computeTotals(){
+    const unit = Number(unitPriceHidden.value || 0);
+    const qty  = Math.max(1, parseInt(qtyEl.value || "1",10));
+    const pages= Math.max(1, parseInt(pagesEl.value || "1",10));
+    const size = sizeEl.value;
+    const factor = ({short:1, A4:1, long:1})[size] ?? 1;
+
+    const itemsTotal = unit * qty * pages * factor;
+    const dfee = (fulfillmentMethod.value === "delivery") ? Number(vendorDeliveryFee||0) : 0;
+    const grand = itemsTotal + dfee;
+
+    unitPriceLabel.textContent  = `₱${unit.toLocaleString()}`;
+    itemsTotalLabel.textContent = `₱${itemsTotal.toLocaleString()}`;
+    deliveryFeeLabel.textContent= `₱${dfee.toLocaleString()}`;
+    grandTotalLabel.textContent = `₱${grand.toLocaleString()}`;
+    return { unit, qty, pages, size, itemsTotal, deliveryFee: dfee, grandTotal: grand };
+  }
+  [qtyEl, pagesEl, sizeEl, fulfillmentMethod].forEach(el => el.addEventListener("input", computeTotals));
+
+  // Auto PDF pages
+  document.getElementById("orderDocFile").addEventListener("change", async (e)=>{
+    const file = e.target.files?.[0];
+    pagesHint.classList.add("hidden");
+    if (!file) return;
+    const isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPDF) { pagesEl.readOnly = false; pagesEl.value = "1"; computeTotals(); return; }
+    try{
+      const buf = await file.arrayBuffer();
+      const pdf = await window['pdfjsLib'].getDocument({ data: buf }).promise;
+      pagesEl.value = String(pdf.numPages);
+      pagesEl.readOnly = true;
+      pagesHint.classList.remove("hidden");
+    }catch(e){ console.warn(e); pagesEl.readOnly=false; }
+    computeTotals();
+  });
+
+  function openOrderModal({ serviceId, serviceName, servicePrice }) {
+    document.getElementById("orderServiceId").value = serviceId;
+    document.getElementById("orderServiceName").value = serviceName;
+    document.getElementById("orderServiceLabel").textContent = `${serviceName}`;
+    unitPriceHidden.value = Number(servicePrice || 0);
+    computeTotals();
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    if (!modalOpen) history.pushState({ modal: true }, "", "#order");
+    modalOpen = true;
+    syncGcashBoxVisibility();
+  }
+  function closeOrderModal() {
+    if (!modalOpen) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    modalOpen = false;
+    if (location.hash === "#order") history.back();
+  }
+  closeModalBtn.addEventListener("click", closeOrderModal);
+  cancelOrderBtn.addEventListener("click", closeOrderModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeOrderModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modalOpen) closeOrderModal(); });
+  window.addEventListener("popstate", () => { if (modalOpen) { modal.classList.add("hidden"); modal.classList.remove("flex"); modalOpen=false; } });
+
+  /* ---------- Submit order ---------- */
+  orderForm.addEventListener("submit", async (evt)=>{
+    evt.preventDefault();
+    const user = auth.currentUser;
+    if (!user){ alert("Please login again."); return; }
+
+    // Upload file
+    let fileURL = "";
+    const file = document.getElementById("orderDocFile").files?.[0];
+    if (file) {
+      const MAX_MB = 20;
+      if (file.size > MAX_MB * 1024 * 1024) { alert(`File too large. Max ${MAX_MB} MB.`); return; }
+      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      const objectPath = `${shopId}/${user.uid}/${Date.now()}_${safeName}`;
+      const { error: upErr } = await supabase.storage.from("orders").upload(objectPath, file, { upsert: true, cacheControl: "3600" });
+      if (upErr) { console.error(upErr); alert("Upload failed: " + upErr.message); return; }
+      const { data: pub } = supabase.storage.from("orders").getPublicUrl(objectPath);
+      fileURL = pub.publicUrl;
     }
-  </script>
+
+    const totals = computeTotals();
+    const serviceId       = document.getElementById("orderServiceId").value;
+    const serviceName     = document.getElementById("orderServiceName").value;
+    const customerName    = document.getElementById("customerName").value.trim();
+    const customerContact = document.getElementById("customerContact").value.trim();
+    const method          = paymentMethod.value;
+    const fulfill         = fulfillmentMethod.value;
+    const sides           = document.getElementById("sides").value;
+    const gcashNumber     = document.getElementById("gcashNumber").value.trim();
+    const notes           = document.getElementById("orderNotes").value;
+
+    const orderData = {
+      serviceId, serviceName, customerName, customerContact,
+      paymentMethod: method,
+      fulfillmentMethod: fulfill,
+      qty: totals.qty, pages: totals.pages, size: totals.size, sides,
+      unitPrice: totals.unit, totalPrice: totals.itemsTotal,
+      deliveryFee: totals.deliveryFee, grandTotal: totals.grandTotal,
+      fileURL: fileURL,
+      notes, gcashNumber,
+      status: "pending",
+      createdAt: serverTimestamp(),
+      customerUid: user.uid,
+      vendorId: shopId
+    };
+    if (vendorGcashQrUrl) orderData.vendorGcashQrUrl = vendorGcashQrUrl;
+
+    try{
+      const vendorOrderRef = await addDoc(collection(db,"vendors",shopId,"orders"), orderData);
+      await setDoc(doc(db,"users",user.uid,"orders",vendorOrderRef.id), { ...orderData, vendorOrderId: vendorOrderRef.id });
+      alert("✅ Order submitted!");
+      orderForm.reset();
+      pagesEl.readOnly = false; pagesHint.classList.add("hidden");
+      closeOrderModal();
+    }catch(err){
+      console.error(err);
+      alert("Error creating order: " + (err?.message || err));
+    }
+  });
+
+  function escapeHTML(s){
+    return String(s||"").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+  }
+
+  /* ----------------------- CHAT LOGIC ----------------------- */
+  let chatId = null;
+  let unSubChat = null;
+
+  function openChat(){ chatPanel.classList.add("open"); }
+  function closeChat(){ chatPanel.classList.remove("open"); }
+  chatFab.addEventListener("click", async ()=>{
+    if (!currentUser){ window.location.href = "auth.html"; return; }
+    openChat();
+    await ensureChat();
+    attachChatStream();
+  });
+  chatClose.addEventListener("click", closeChat);
+
+  async function ensureChat(){
+    if (chatId) return chatId;
+    // deterministic id so conversation reuses same thread
+    chatId = `${shopId}_${currentUser.uid}`;
+    const vendorChatRef = doc(db, "vendors", shopId, "chats", chatId);
+    const snap = await getDoc(vendorChatRef);
+    if (!snap.exists()){
+      const payload = {
+        chatId, vendorId: shopId, userId: currentUser.uid,
+        lastMessage: null, updatedAt: serverTimestamp(), createdAt: serverTimestamp()
+      };
+      await setDoc(vendorChatRef, payload);
+      // mirror under user
+      await setDoc(doc(db, "users", currentUser.uid, "chats", chatId), payload);
+    }
+    return chatId;
+  }
+
+  function renderMessage(m){
+    const wrap = document.createElement("div");
+    const me = m.senderId === currentUser.uid;
+    wrap.innerHTML = `
+      <div class="msg ${me?'me':'them'}">${escapeHTML(m.text||'')}</div>
+      <div class="msg-time ${me?'text-right':''}">${m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString() : ''}</div>
+    `;
+    return wrap;
+  }
+
+  function scrollToBottom(){ chatMessages.scrollTop = chatMessages.scrollHeight; }
+
+  function attachChatStream(){
+    if (unSubChat || !chatId) return;
+    const msgsRef = collection(db, "vendors", shopId, "chats", chatId, "messages");
+    unSubChat = onSnapshot(msgsRef, (snap)=>{
+      // order by createdAt via client (keeps code simple)
+      const arr = [];
+      snap.forEach(d => arr.push(d.data()));
+      arr.sort((a,b)=> (a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+      chatMessages.innerHTML = "";
+      arr.forEach(m => chatMessages.appendChild(renderMessage(m)));
+      scrollToBottom();
+    });
+  }
+
+  chatForm.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    if (!currentUser){ alert("Please sign in again."); return; }
+    const text = chatInput.value.trim();
+    if (!text) return;
+    await ensureChat();
+
+    const msg = {
+      text, senderId: currentUser.uid, senderRole: "user",
+      createdAt: serverTimestamp()
+    };
+
+    try{
+      // write to vendor thread
+      await addDoc(collection(db, "vendors", shopId, "chats", chatId, "messages"), msg);
+      // mirror under user
+      await addDoc(collection(db, "users", currentUser.uid, "chats", chatId, "messages"), msg);
+      // update heads
+      const head = { lastMessage: text, updatedAt: serverTimestamp() };
+      await setDoc(doc(db, "vendors", shopId, "chats", chatId), head, { merge: true });
+      await setDoc(doc(db, "users", currentUser.uid, "chats", chatId), head, { merge: true });
+
+      chatInput.value = "";
+      chatInput.focus();
+      scrollToBottom();
+    }catch(err){
+      console.error(err);
+      alert("Message failed: " + (err?.message || err));
+    }
+  });
+</script>
 </body>
 </html>
